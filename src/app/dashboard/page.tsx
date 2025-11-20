@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import LinkCard from "@/components/fragments/LinkCard";
 import EditorSidebar from "@/components/fragments/EditorSidebar";
 import useLinks from "@/hooks/useLinks";
@@ -38,7 +38,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Masuk dulu sebelum mengelola Link</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            Masuk dulu sebelum mengelola Link
+          </h2>
           <button
             className="px-4 py-2 rounded bg-blue-600 text-white"
             onClick={() => signIn("google")}
@@ -81,7 +83,9 @@ export default function DashboardPage() {
       await fetch("/api/link/reorder", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders: newArray.map((l) => ({ id: l.id, sortOrder: l.sortOrder })) }),
+        body: JSON.stringify({
+          orders: newArray.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
+        }),
       });
       // refetch optional
     } catch (err) {
@@ -97,7 +101,9 @@ export default function DashboardPage() {
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Dashboard LinkHub</h1>
-            <p className="text-sm text-slate-600">Kelola moodboard link kamu — drag & drop untuk susun ulang</p>
+            <p className="text-sm text-slate-600">
+              Kelola moodboard link kamu — drag & drop untuk susun ulang
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -106,6 +112,12 @@ export default function DashboardPage() {
               onClick={() => openEditor()}
             >
               + Tambah Link
+            </button>
+            <button
+              className="px-4 py-2 bg-red-600 text-white rounded"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              Logout
             </button>
           </div>
         </header>
@@ -116,13 +128,23 @@ export default function DashboardPage() {
           ) : links.length === 0 ? (
             <div className="text-center py-10">
               <p className="mb-4">Kamu belum punya link apa pun.</p>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => openEditor()}>
+              <button
+                className="px-4 py-2 bg-indigo-600 text-white rounded"
+                onClick={() => openEditor()}
+              >
                 Tambah Link Pertama
               </button>
             </div>
           ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={links.map((l) => l.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 <div className="grid grid-cols-1 gap-4">
                   {links.map((link) => (
                     <LinkCard
@@ -134,7 +156,9 @@ export default function DashboardPage() {
                         const prev = [...links];
                         setLinks((s) => s.filter((x) => x.id !== link.id));
                         try {
-                          await fetch(`/api/link/${link.id}`, { method: "DELETE" });
+                          await fetch(`/api/link/${link.id}`, {
+                            method: "DELETE",
+                          });
                         } catch (err) {
                           console.error(err);
                           setLinks(prev);
