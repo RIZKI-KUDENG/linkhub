@@ -53,8 +53,8 @@ export default function LinkCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold truncate max-w-[28rem]">{link.title ?? link.url}</h3>
-            <p className="text-xs text-slate-500 truncate max-w-[28rem]">{link.description ?? link.url}</p>
+            <h3 className="text-sm font-semibold truncate max-w-md">{link.title ?? link.url}</h3>
+            <p className="text-xs text-slate-500 truncate max-w-md">{link.description ?? link.url}</p>
           </div>
 
           <div className="flex gap-2 items-center">

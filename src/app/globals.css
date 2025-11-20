@@ -120,3 +120,7 @@
     @apply bg-background text-foreground;
   }
 }
+.masonry-column {
+  padding: 0;
+  background-clip: padding-box;
+}

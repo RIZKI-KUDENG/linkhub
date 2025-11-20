@@ -1,6 +1,52 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import MasonryClient from "@/components/fragments/MasonryClient";
+import { Metadata } from "next";
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ username: string }> }
+): Promise<Metadata> {
+  const { username } = await params;
+
+  const user = await prisma.user.findFirst({
+    where: { username },
+    include: { links: true },
+  });
+  console.log(user?.image);
+
+  if (!user) {
+    return {
+      title: "User tidak ditemukan · LinkHub",
+      description: "Profil tidak ditemukan.",
+    };
+  }
+
+  return {
+    title: `@${user.username} · LinkHub`,
+    description: `Lihat koleksi link, tools, dan portfolio dari @${user.username}.`,
+    openGraph: {
+      title: `@${user.username} · LinkHub`,
+      description: `Lihat koleksi link visual dari @${user.username}.`,
+      images: [
+        `/api/og?username=${user.username}`
+      ],
+      url: `https://linkhub.app/u/${user.username}`,
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `@${user.username} · LinkHub`,
+      description: `Lihat koleksi link visual dari @${user.username}.`,
+      images: [
+        `/api/og?username=${user.username}`
+      ],
+    },
+  };
+}
+
+
+
 
 export default async function PublicPage({
   params,
@@ -21,6 +67,7 @@ export default async function PublicPage({
   if (!user) {
     notFound();
   }
+
   return (
     <div className="min-h-screen relative bg-white p-6">
       <div className="max-w-2xl mx-auto mt-10">
@@ -43,42 +90,32 @@ export default async function PublicPage({
           </div>
           <h1 className="text-2xl font-bold text-slate-900">@{user.name}</h1>
         </div>
-        <div className="space-y-4">
+        <MasonryClient>
           {user.links.map((link) => (
             <a
               key={link.id}
               href={link.url}
               target="_blank"
-              rel="noopener noreferrer"
-              className="block group bg-white border border-slate-200 rounded-xl p-1.5 pr-4 hover:border-slate-300 hover:shadow-md transition-all duration-200"
+              className="block mb-4 bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition border"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 shrink-0 bg-slate-100 rounded-lg overflow-hidden">
-                  {link.imageUrl ? (
-                    <Image
-                      width={100}
-                      height={100}
-                      src={link.imageUrl}
-                      alt={link.title || "Link thumbnail"}
-                      className="object-cover h-full w-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <span className="text-xs">No Img</span>
-                    </div>
-                  )}
-                </div>
+              {link.imageUrl && (
+                <img
+                  src={link.imageUrl}
+                  className="w-full object-cover"
+                  alt={link.title ?? link.url}
+                />
+              )}
 
-                <div className="flex-1 min-w-0 py-1">
-                  <h3 className="font-semibold text-slate-900 truncate">
-                    {link.title || link.url}
-                  </h3>
-                  {link.description && (
-                    <p className="text-sm text-slate-500 line-clamp-1 mt-0.5">
-                      {link.description}
-                    </p>
-                  )}
-                </div>
+              <div className="p-3">
+                <h3 className="font-semibold text-sm mb-1">
+                  {link.title ?? link.url}
+                </h3>
+
+                {link.description && (
+                  <p className="text-xs text-gray-500 line-clamp-3">
+                    {link.description}
+                  </p>
+                )}
               </div>
             </a>
           ))}
@@ -88,7 +125,7 @@ export default async function PublicPage({
               <p>Belum ada link yang ditampilkan.</p>
             </div>
           )}
-        </div>
+        </MasonryClient>
       </div>
     </div>
   );
