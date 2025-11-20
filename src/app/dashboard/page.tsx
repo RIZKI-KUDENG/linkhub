@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
-
   useEffect(() => {
     if (links) {
       const sorted = [...links].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -75,8 +74,6 @@ export default function DashboardPage() {
       ...item,
       sortOrder: idx,
     }));
-
-    // optimistik update
     setLinks(newArray);
 
     try {
@@ -87,10 +84,8 @@ export default function DashboardPage() {
           orders: newArray.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
         }),
       });
-      // refetch optional
     } catch (err) {
       console.error("Reorder failed", err);
-      // rollback
       refetch();
     }
   }
@@ -152,7 +147,6 @@ export default function DashboardPage() {
                       link={link}
                       onEdit={() => openEditor(link.id)}
                       onDelete={async () => {
-                        // optimistic delete
                         const prev = [...links];
                         setLinks((s) => s.filter((x) => x.id !== link.id));
                         try {

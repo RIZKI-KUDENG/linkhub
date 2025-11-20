@@ -21,7 +21,6 @@ export default function useLinks() {
     try {
       const res = await fetch("/api/link");
       const data = await res.json();
-      // ensure numbers sorted
       const normalized = data.map((d: any, i: number) => ({ ...d, sortOrder: typeof d.sortOrder === "number" ? d.sortOrder : i }));
       normalized.sort((a: any, b: any) => a.sortOrder - b.sortOrder);
       setLinks(normalized);

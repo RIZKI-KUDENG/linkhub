@@ -18,15 +18,11 @@ model User {
   id             String    @id @default(uuid())
   name           String?
   email          String    @unique
-  image          String?     // NextAuth pakai field ini
-  avatarUrl      String?     // opsional (boleh hapus)
-  emailVerified  DateTime?   // optional but recommended
+  emailVerified  DateTime?   
+  image          String?     @map("avatarUrl")    
   createdAt      DateTime  @default(now())
 
-  // Relasi aplikasi kamu
   links          Link[]
-
-  // Relasi NextAuth (WAJIB ADA)
   accounts       Account[]
   sessions       Session[]
 }
