@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import Image from "next/image";
 
 export default async function PublicPage({
   params,
@@ -6,9 +8,9 @@ export default async function PublicPage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      name: username,
+      username: username,
     },
     include: {
       links: {
@@ -17,22 +19,18 @@ export default async function PublicPage({
     },
   });
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl font-semibold text-slate-600">
-          User tidak ditemukan.
-        </p>
-      </div>
-    );
+    notFound();
   }
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen relative bg-white p-6">
       <div className="max-w-2xl mx-auto mt-10">
-        {/* Profile Section */}
         <div className="text-center mb-10">
           <div className="relative w-24 h-24 mx-auto mb-4">
             {user.image ? (
-              <img
+              <Image
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority
                 src={user.image}
                 alt={user.name || "Profile"}
                 className="w-full h-full rounded-full object-cover border-2 border-slate-100 shadow-sm"
@@ -57,10 +55,12 @@ export default async function PublicPage({
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 shrink-0 bg-slate-100 rounded-lg overflow-hidden">
                   {link.imageUrl ? (
-                    <img
+                    <Image
+                      width={100}
+                      height={100}
                       src={link.imageUrl}
                       alt={link.title || "Link thumbnail"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover h-full w-full"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">

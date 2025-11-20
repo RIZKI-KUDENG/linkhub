@@ -5,6 +5,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import LinkCard from "@/components/fragments/LinkCard";
 import EditorSidebar from "@/components/fragments/EditorSidebar";
 import useLinks from "@/hooks/useLinks";
+import { redirect } from "next/navigation";
 import {
   DndContext,
   closestCenter,
@@ -89,7 +90,9 @@ export default function DashboardPage() {
       refetch();
     }
   }
-
+  const handleRedirect = () => {
+    redirect(`/u/${session.user.username}`);
+  }
   return (
     <div className="min-h-screen p-6 bg-slate-50 text-slate-900">
       <div className="max-w-5xl mx-auto">
@@ -113,6 +116,12 @@ export default function DashboardPage() {
               onClick={() => signOut({ callbackUrl: "/login" })}
             >
               Logout
+            </button>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded"
+              onClick={handleRedirect}
+            >
+              Profile
             </button>
           </div>
         </header>
