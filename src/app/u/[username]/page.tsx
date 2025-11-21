@@ -13,6 +13,25 @@ import {
   FaLinkedin,
   FaGithub,
 } from "react-icons/fa6";
+import { unstable_cache } from "next/cache";
+
+const getUserProfile = unstable_cache(
+  async (username: string) => {
+    return await prisma.user.findUnique({
+      where: { username },
+      include: {
+        links: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+  },
+  ["user-profile-data"], // Cache Key (harus unik untuk fungsi ini)
+  {
+    revalidate: 60, // Revalidate setiap 60 detik (Cache Time-to-Live)
+    tags: ["user-profile"], // Tags untuk invalidasi manual (opsional)
+  }
+);
 const getSocialIcon = (url: string) => {
   const u = url.toLowerCase();
   if (u.includes("instagram")) return <FaInstagram />;
@@ -45,11 +64,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params;
 
-  const user = await prisma.user.findFirst({
-    where: { username },
-    include: { links: true },
-  });
-  console.log(user?.image);
+  const user = await getUserProfile(username);
 
   if (!user) {
     return {
@@ -83,16 +98,7 @@ export default async function PublicPage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const user = await prisma.user.findUnique({
-    where: {
-      username: username,
-    },
-    include: {
-      links: {
-        orderBy: { sortOrder: "asc" },
-      },
-    },
-  });
+  const user = await getUserProfile(username);
   if (!user) {
     notFound();
   }

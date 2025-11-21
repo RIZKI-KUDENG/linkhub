@@ -61,7 +61,8 @@ model LinkClicks {
   country   String?  
   city      String?  
   
-  @@index([linkId]) 
+  @@index([linkId, createdAt]) 
+  
   @@index([createdAt]) 
 }
 

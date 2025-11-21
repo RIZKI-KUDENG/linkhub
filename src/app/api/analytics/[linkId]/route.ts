@@ -40,18 +40,13 @@ export async function GET(
     _count: { id: true },
   });
 
-  // Normalisasi data harian (karena groupBy prisma mengembalikan date object)
-  // Kita perlu format datanya agar mudah dipakai chart (misal: "2023-11-20": 15)
-  // Catatan: Prisma SQLite/Postgres raw query kadang lebih mudah untuk grouping by DATE,
-  // tapi logic JS sederhana di bawah ini cukup untuk MVP.
   const chartData = dailyClicks.reduce((acc, curr) => {
-    const date = curr.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+    const date = curr.createdAt.toISOString().split('T')[0]; 
     acc[date] = (acc[date] || 0) + curr._count.id;
     return acc;
   }, {} as Record<string, number>);
 
 
-  // 2. Statistik Device
   const devices = await prisma.linkClicks.groupBy({
     by: ['device'],
     where: { linkId },
@@ -59,16 +54,14 @@ export async function GET(
     orderBy: { _count: { id: 'desc' } },
   });
 
-  // 3. Statistik Referrer
   const referrers = await prisma.linkClicks.groupBy({
     by: ['referrer'],
     where: { linkId },
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } },
-    take: 5, // Top 5 saja
+    take: 5, 
   });
 
-  // 4. Statistik Lokasi (Negara)
   const locations = await prisma.linkClicks.groupBy({
     by: ['country'],
     where: { linkId },
@@ -79,8 +72,8 @@ export async function GET(
 
   return NextResponse.json({
     totalClicks: link.clicks,
-    chartData, // { "2024-01-01": 10, "2024-01-02": 5 }
-    devices,   // [{ device: "mobile", _count: { id: 50 } }, ...]
+    chartData, 
+    devices,   
     referrers,
     locations,
   });
