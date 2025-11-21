@@ -35,6 +35,7 @@ export async function POST(req: Request) {
         description: data.description,
         imageUrl: data.imageUrl,
         category: data.category,
+        type: data.type || "CLASSIC",
         userId: session.user.id,
         },
     });

@@ -5,6 +5,38 @@ import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
 import { ThemeKey, themes } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { Mail, Globe, Link2 as LinkIcon } from "lucide-react";
+import {
+  FaInstagram,
+  FaTwitter,
+  FaFacebook,
+  FaLinkedin,
+  FaGithub,
+} from "react-icons/fa6";
+const getSocialIcon = (url: string) => {
+  const u = url.toLowerCase();
+  if (u.includes("instagram")) return <FaInstagram />;
+  if (u.includes("twitter") || u.includes("x.com")) return <FaTwitter />;
+  if (u.includes("facebook")) return <FaFacebook />;
+  if (u.includes("linkedin")) return <FaLinkedin />;
+  if (u.includes("github")) return <FaGithub />;
+  if (u.includes("mailto")) return <Mail />;
+  return <Globe />;
+};
+const getEmbedUrl = (url: string) => {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+
+  // Spotify
+  const spMatch = url.match(
+    /open\.spotify\.com\/(track|album|playlist)\/([\w]+)/
+  );
+  if (spMatch)
+    return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
+
+  return null;
+};
 
 export async function generateMetadata({
   params,
@@ -66,6 +98,8 @@ export default async function PublicPage({
   }
   const themeKey = (user.theme as ThemeKey) || "default";
   const theme = themes[themeKey] || themes.default;
+  const socialLinks = user.links.filter((l) => l.type === "SOCIAL");
+  const contentLinks = user.links.filter((l) => l.type !== "SOCIAL");
   return (
     <div
       className={cn(
@@ -109,43 +143,77 @@ export default async function PublicPage({
           )}
         </div>
         <MasonryClient>
-          {user.links.map((link) => (
-            <a
-              key={link.id}
-              href={`/api/link/${link.id}/click`}
-              target="_blank"
-              className={cn(
-                "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform",
-                theme.card,
-                theme.cardHover
-              )}
-            >
-              {link.imageUrl && (
-                <img
-                  src={link.imageUrl}
-                  className="w-full object-cover"
-                  alt={link.title ?? link.url}
-                />
-              )}
+          {contentLinks.map((link) => {
+            // 1. RENDER EMBED
+            if (link.type === "EMBED") {
+              const embedUrl = getEmbedUrl(link.url);
+              if (!embedUrl) return null; // Skip jika URL tidak valid
 
-              <div className="p-3">
-                <h3 className={cn("font-bold text-sm mb-1", theme.text)}>
-                  {link.title ?? link.url}
-                </h3>
+              return (
+                <div
+                  key={link.id}
+                  className="mb-4 overflow-hidden rounded-xl shadow-md bg-black"
+                >
+                  <iframe
+                    src={embedUrl}
+                    className="w-full aspect-video"
+                    allow="encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                  {link.title && (
+                    <div
+                      className={cn(
+                        "p-3 text-sm font-medium",
+                        theme.card,
+                        theme.text
+                      )}
+                    >
+                      {link.title}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
-                {link.description && (
-                  <p
-                    className={cn(
-                      "text-xs line-clamp-2 opacity-75",
-                      theme.text
-                    )}
-                  >
-                    {link.description}
-                  </p>
+            // 2. RENDER CLASSIC LINK (Kode Lama)
+            return (
+              <a
+                key={link.id}
+                href={`/api/link/${link.id}/click`}
+                target="_blank"
+                className={cn(
+                  "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform",
+                  theme.card,
+                  theme.cardHover
                 )}
-              </div>
-            </a>
-          ))}
+              >
+                {link.imageUrl && (
+                  <img
+                    src={link.imageUrl}
+                    className="w-full object-cover"
+                    alt={link.title ?? link.url}
+                  />
+                )}
+
+                <div className="p-3">
+                  <h3 className={cn("font-bold text-sm mb-1", theme.text)}>
+                    {link.title ?? link.url}
+                  </h3>
+
+                  {link.description && (
+                    <p
+                      className={cn(
+                        "text-xs line-clamp-2 opacity-75",
+                        theme.text
+                      )}
+                    >
+                      {link.description}
+                    </p>
+                  )}
+                </div>
+              </a>
+            );
+          })}
 
           {user.links.length === 0 && (
             <div className="text-center py-10 text-slate-400 bg-slate-50 rounded-xl border border-dashed">
@@ -153,14 +221,35 @@ export default async function PublicPage({
             </div>
           )}
         </MasonryClient>
-        <div
-          className={cn(
-            "text-center mt-12 text-xs opacity-50 font-medium",
-            theme.text
-          )}
-        >
-          Powered by LinkHub
+      </div>
+      {socialLinks.length > 0 && (
+        <div className="max-w-2xl mx-auto mt-12 pb-8 w-full">
+          <div className="flex flex-wrap justify-center gap-4">
+            {socialLinks.map((link) => (
+              <a
+                key={link.id}
+                href={`/api/link/${link.id}/click`}
+                target="_blank"
+                className={cn(
+                  "p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-sm",
+                  theme.card,
+                  theme.text
+                )}
+                title={link.title || link.url}
+              >
+                {getSocialIcon(link.url)}
+              </a>
+            ))}
+          </div>
         </div>
+      )}
+      <div
+        className={cn(
+          "text-center pb-6 text-xs opacity-50 font-medium",
+          theme.text
+        )}
+      >
+        Powered by LinkHub
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash2, Edit2, GripVertical, BarChart2 } from "lucide-react";
+import Link from "next/link";
 
 type Link = {
   id: string;
@@ -67,20 +68,25 @@ export default function LinkCard({
               {link.description ?? link.url}
             </p> */}
             <div className="flex items-center gap-4 mt-1">
-               <p 
-                 className="text-xs truncate max-w-48"
-               >
+              <p className="text-xs truncate max-w-48">
                 {link.description ?? link.url}
-               </p>
-               
-               <div className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                 <BarChart2 size={12} />
-                 <span>{link.clicks} klik</span>
-               </div>
+              </p>
+
+              <div className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                <BarChart2 size={12} />
+                <span>{link.clicks} klik</span>
+              </div>
             </div>
           </div>
 
           <div className="flex gap-2 items-center">
+            <Link
+              href={`/dashboard/links/${link.id}/analytics`}
+              className="p-2 rounded hover:bg-slate-100 text-slate-600"
+              title="Lihat Analitik"
+            >
+              <BarChart2 size={16} />
+            </Link>
             <button
               onClick={onEdit}
               className="p-2 rounded hover:bg-slate-100"

@@ -1,28 +1,61 @@
-import { NextResponse } from "next/server";
+import { NextResponse, userAgent } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const { id } = params;
 
-export async function GET(req: Request, props: { params: Promise<{id: string}> }) {
+  try {
+    // 1. Parse User Agent untuk mendapatkan Device, OS, Browser
+    const { device, browser, os } = userAgent(req);
     
-    const params = await props.params;
+    // 2. Ambil Referer (dari mana user datang)
+    const referer = req.headers.get("referer") || "Direct";
+    
+    // 3. Ambil Lokasi (Hanya bekerja jika dideploy ke Vercel/Platform yang support header ini)
+    const country = req.headers.get("x-vercel-ip-country") || "Unknown";
+    const city = req.headers.get("x-vercel-ip-city") || "Unknown";
 
-    try{
-        const {id} = params
-        const link = await prisma.link.update({
-            where: {id},
-            data: {
-                clicks: {
-                    increment: 1
-                }
-            },
-            select: {
-                url: true
-            }
-        })
+    // 4. Jalankan Database Transaction:
+    //    - Update total clicks di tabel Link (supaya counter cepat)
+    //    - Buat record baru di LinkClick (untuk data detail)
+    const link = await prisma.$transaction(async (tx) => {
+      const updatedLink = await tx.link.update({
+        where: { id },
+        data: {
+          clicks: { increment: 1 },
+        },
+        select: { url: true },
+      });
 
-        return NextResponse.redirect(link.url)
-    }catch(err){
-        console.error(err)
-        return NextResponse.json({error: "Failed to update link"}, {status: 500})
-    }
+      await tx.linkClicks.create({
+        data: {
+          linkId: id,
+          device: device.type || "desktop", // userAgent device.type usually returns 'mobile', 'tablet', or undefined (desktop)
+          browser: browser.name,
+          os: os.name,
+          referrer: referer,
+          country: country,
+          city: city,
+        },
+      });
+
+      return updatedLink;
+    });
+
+    // 5. Redirect user ke URL tujuan
+    return NextResponse.redirect(link.url);
+    
+  } catch (err) {
+    console.error("Click tracking failed:", err);
+    // Tetap redirect user meskipun tracking gagal agar UX tidak terganggu
+    // Kita perlu fetch URL aslinya dulu jika update gagal (fallback)
+    const link = await prisma.link.findUnique({ 
+        where: { id }, 
+        select: { url: true } 
+    });
+    
+    if (link) return NextResponse.redirect(link.url);
+    return NextResponse.json({ error: "Link not found" }, { status: 404 });
+  }
 }
