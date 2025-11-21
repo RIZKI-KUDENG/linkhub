@@ -67,7 +67,7 @@ export default async function PublicPage({
   if (!user) {
     notFound();
   }
-
+  console.log(user.links);
   return (
     <div className="min-h-screen relative bg-white p-6">
       <div className="max-w-2xl mx-auto mt-10">
@@ -94,7 +94,7 @@ export default async function PublicPage({
           {user.links.map((link) => (
             <a
               key={link.id}
-              href={link.url}
+              href={`/api/link/${link.id}/click`}
               target="_blank"
               className="block mb-4 bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition border"
             >

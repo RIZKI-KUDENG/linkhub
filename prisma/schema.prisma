@@ -37,6 +37,7 @@ model Link{
   imageUrl    String?
   category    String?
   sortOrder   Int       @default(0)
+  clicks      Int       @default(0)
   createdAt   DateTime  @default(now())
 
   userId      String

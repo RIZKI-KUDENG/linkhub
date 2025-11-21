@@ -10,6 +10,7 @@ type Link = {
   imageUrl?: string | null;
   category?: string | null;
   sortOrder: number;
+  clicks: number;
 };
 
 export default function useLinks() {
