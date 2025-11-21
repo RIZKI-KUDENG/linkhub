@@ -18,11 +18,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    // Generate username di sini
+    // Generate username
     async signIn({ user }) {
       if (!user) return true;
-
-      // cek apakah user sudah punya username
       const existing = await prisma.user.findUnique({
         where: { id: user.id },
       });
@@ -47,10 +45,15 @@ export const authOptions: NextAuthOptions = {
     },
 
     // SIMPAN username & id ke JWT
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.username = user.username ?? null;
+        token.bio = user.bio ?? null;
+        token.theme = user.theme ?? "default";
+      }
+      if (trigger === "update" && session?.user) {
+        return { ...token, ...session.user };
       }
 
       return token;
@@ -60,6 +63,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       session.user.id = token.id as string;
       session.user.username = token.username ?? null;
+      session.user.bio = token.bio as string | null;
+      session.user.theme = (token.theme as string) || "default";
       return session;
     },
   },

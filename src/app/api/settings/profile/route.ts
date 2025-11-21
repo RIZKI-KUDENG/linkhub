@@ -13,6 +13,7 @@ const profileSchema = z.object({
     name: z.string().min(1,"Nama tidak boleh kosong"),
     bio: z.string().max(160, "Bio tidak boleh lebih dari 160 karakter").optional(),
     image: z.url("URL gambar tidak valid").optional(),
+    theme: z.string().optional(),
 });
 
 export async function GET(req: Request) {
@@ -29,8 +30,9 @@ export async function GET(req: Request) {
         id: true,
         username: true,
         name: true,
-        bio: true,   // Pastikan kolom ini sudah ada di database
+        bio: true,   
         image: true,
+        theme: true
       }
     });
 

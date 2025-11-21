@@ -3,10 +3,14 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
+import { ThemeKey, themes } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ username: string }> }
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
   const { username } = await params;
 
   const user = await prisma.user.findFirst({
@@ -28,9 +32,7 @@ export async function generateMetadata(
     openGraph: {
       title: `@${user.username} · LinkHub`,
       description: `Lihat koleksi link visual dari @${user.username}.`,
-      images: [
-        `/api/og?username=${user.username}`
-      ],
+      images: [`/api/og?username=${user.username}`],
       url: `https://linkhub.app/u/${user.username}`,
       type: "profile",
     },
@@ -38,15 +40,10 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `@${user.username} · LinkHub`,
       description: `Lihat koleksi link visual dari @${user.username}.`,
-      images: [
-        `/api/og?username=${user.username}`
-      ],
+      images: [`/api/og?username=${user.username}`],
     },
   };
 }
-
-
-
 
 export default async function PublicPage({
   params,
@@ -67,9 +64,15 @@ export default async function PublicPage({
   if (!user) {
     notFound();
   }
-  console.log(user.links);
+  const themeKey = (user.theme as ThemeKey) || "default";
+  const theme = themes[themeKey] || themes.default;
   return (
-    <div className="min-h-screen relative bg-white p-6">
+    <div
+      className={cn(
+        "min-h-screen relative p-6 transition-colors duration-300",
+        theme.bg
+      )}
+    >
       <div className="max-w-2xl mx-auto mt-10">
         <div className="text-center mb-10">
           <div className="relative w-24 h-24 mx-auto mb-4">
@@ -83,12 +86,27 @@ export default async function PublicPage({
                 className="w-full h-full rounded-full object-cover border-2 border-slate-100 shadow-sm"
               />
             ) : (
-              <div className="w-full h-full rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-500">
+              <div
+                className={cn(
+                  "w-full h-full rounded-full flex items-center justify-center text-3xl font-bold border-4 border-white/20",
+                  theme.card,
+                  theme.text
+                )}
+              >
                 {user.name?.charAt(0) || "U"}
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">@{user.name}</h1>
+          <h1 className={cn("text-2xl font-bold mb-2", theme.text)}>
+            @{user.name}
+          </h1>
+          {user.bio && (
+            <p
+              className={cn("text-sm opacity-90 max-w-md mx-auto", theme.text)}
+            >
+              {user.bio}
+            </p>
+          )}
         </div>
         <MasonryClient>
           {user.links.map((link) => (
@@ -96,7 +114,11 @@ export default async function PublicPage({
               key={link.id}
               href={`/api/link/${link.id}/click`}
               target="_blank"
-              className="block mb-4 bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition border"
+              className={cn(
+                "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform",
+                theme.card,
+                theme.cardHover
+              )}
             >
               {link.imageUrl && (
                 <img
@@ -107,12 +129,17 @@ export default async function PublicPage({
               )}
 
               <div className="p-3">
-                <h3 className="font-semibold text-sm mb-1">
+                <h3 className={cn("font-bold text-sm mb-1", theme.text)}>
                   {link.title ?? link.url}
                 </h3>
 
                 {link.description && (
-                  <p className="text-xs text-gray-500 line-clamp-3">
+                  <p
+                    className={cn(
+                      "text-xs line-clamp-2 opacity-75",
+                      theme.text
+                    )}
+                  >
                     {link.description}
                   </p>
                 )}
@@ -126,6 +153,14 @@ export default async function PublicPage({
             </div>
           )}
         </MasonryClient>
+        <div
+          className={cn(
+            "text-center mt-12 text-xs opacity-50 font-medium",
+            theme.text
+          )}
+        >
+          Powered by LinkHub
+        </div>
       </div>
     </div>
   );

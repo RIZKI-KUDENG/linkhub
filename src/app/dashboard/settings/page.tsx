@@ -7,6 +7,8 @@ import { z } from "zod";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"
 import Image from "next/image";
+import { themes, ThemeKey } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 const profileSchema = z.object({
   username: z
@@ -16,6 +18,7 @@ const profileSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi"),
   bio: z.string().max(160).optional(),
   image: z.string().url("URL tidak valid").optional().or(z.literal("")),
+  theme: z.string().optional(),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -25,6 +28,7 @@ type UserData = {
     name?: string | null;
     bio?: string | null;
     image?: string | null;
+    theme?: string | null;
   };
 
 export default function SettingsPage(){
@@ -59,12 +63,14 @@ useEffect(() => {
            setValue("name", user.name || "");
            setValue("bio", user.bio || "");
            setValue("image", user.image || "");
+           setValue("theme", user.theme || "default");
         })
         .catch((err) => {
             console.error("Gagal memuat profil:", err);
         });
     }
   }, [session, setValue]);
+  const currentTheme = watch("theme") as ThemeKey || "default";
 const imageUrl = watch("image");
 const onSubmit = async (data: ProfileForm) => {
     setIsLoading(true);
@@ -92,6 +98,8 @@ const onSubmit = async (data: ProfileForm) => {
           name: data.name,
           username: data.username,
           image: data.image,
+          bio: data.bio,
+          theme: data.theme
         },
       });
 
@@ -188,6 +196,44 @@ const onSubmit = async (data: ProfileForm) => {
             <div className="flex justify-between mt-1">
                 {errors.bio && <p className="text-red-500 text-xs">{errors.bio.message}</p>}
                 <p className="text-xs text-slate-400 ml-auto">Maks. 160 karakter</p>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-3">
+              Pilih Tema Tampilan
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(themes).map(([key, themeData]) => (
+                <div key={key}>
+                  <label 
+                    className={cn(
+                      "cursor-pointer block relative rounded-lg border-2 p-1 transition-all",
+                      currentTheme === key 
+                        ? "border-indigo-600 ring-2 ring-indigo-100" 
+                        : "border-transparent hover:border-slate-200"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={key}
+                      {...register("theme")}
+                      className="sr-only"
+                    />
+                    {/* Preview Miniatur Tema */}
+                    <div className={cn("h-24 rounded-md flex flex-col items-center justify-center gap-2", themeData.bg)}>
+                       <div className={cn("w-16 h-4 rounded text-[8px] flex items-center justify-center", themeData.button)}>
+                          Tombol
+                       </div>
+                       <div className={cn("w-16 h-8 rounded text-[8px] p-1", themeData.card)}>
+                          <div className={cn("w-8 h-1 rounded-full mb-1 bg-current opacity-20")}></div>
+                       </div>
+                    </div>
+                    <p className="text-center text-xs font-medium mt-2 text-slate-600">
+                      {themeData.name}
+                    </p>
+                  </label>
+                </div>
+              ))}
             </div>
           </div>
 

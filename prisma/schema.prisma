@@ -22,6 +22,7 @@ model User {
   emailVerified  DateTime?   
   image          String?     @map("avatarUrl") 
   bio            String?    
+  theme          String     @default("default")
   createdAt      DateTime  @default(now())
 
   links          Link[]
