@@ -56,7 +56,7 @@ export async function PATCH(req: Request){
         const result = profileSchema.safeParse(body);
         if(!result.success) return NextResponse.json({error: result.error.flatten().fieldErrors}, {status: 400});
 
-        const {username, name, bio, image} = result.data;
+        const {username, name, bio, image, theme} = result.data;
         if(username !== session.user.username){
             const existing = await prisma.user.findUnique({where: {username}});
             if(existing) return NextResponse.json({error: "Username sudah digunakan"}, {status: 409});
@@ -67,7 +67,8 @@ export async function PATCH(req: Request){
                 username,
                 name,
                 bio,
-                image: image || null
+                image: image || null,
+                theme: theme
             }
         })
         return NextResponse.json(updateUser);
