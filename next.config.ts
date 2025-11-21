@@ -7,10 +7,16 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**"
-      }
-    ]
-  }
+        hostname: "**",
+      },
+    ],
+    dangerouslyAllowSVG: true,
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
 };
 
 export default nextConfig;

@@ -92,7 +92,7 @@ export default function DashboardPage() {
   }
   const handleRedirect = () => {
     redirect(`/u/${session.user.username}`);
-  }
+  };
   return (
     <div className="min-h-screen p-6 bg-slate-50 text-slate-900">
       <div className="max-w-5xl mx-auto">
@@ -123,6 +123,12 @@ export default function DashboardPage() {
             >
               Profile
             </button>
+            <a
+              href="/dashboard/settings"
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+            >
+              Settings
+            </a>
           </div>
         </header>
 

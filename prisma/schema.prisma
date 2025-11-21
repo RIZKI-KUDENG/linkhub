@@ -20,7 +20,8 @@ model User {
   username       String?   @unique
   email          String    @unique
   emailVerified  DateTime?   
-  image          String?     @map("avatarUrl")    
+  image          String?     @map("avatarUrl") 
+  bio            String?    
   createdAt      DateTime  @default(now())
 
   links          Link[]
