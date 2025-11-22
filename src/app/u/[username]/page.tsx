@@ -5,13 +5,14 @@ import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
 import { ThemeKey, themes } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Mail, Globe } from "lucide-react";
+import { Mail, Globe, HeartHandshake } from "lucide-react";
 import {
   FaInstagram,
   FaTwitter,
   FaFacebook,
   FaLinkedin,
   FaGithub,
+  FaPaypal
 } from "react-icons/fa6";
 import { unstable_cache } from "next/cache";
 
@@ -51,12 +52,21 @@ const getEmbedUrl = (url: string) => {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
 
-  // Spotify
-  const spMatch = url.match(
-    /open\.spotify\.com\/(track|album|playlist)\/([\w]+)/
-  );
-  if (spMatch)
-    return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
+  // Spotify (Support Track, Album, Playlist, Episode)
+  const spMatch = url.match(/open\.spotify\.com\/(track|album|playlist|episode)\/([\w]+)/);
+  if (spMatch) return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
+
+  // Apple Music
+  // Ubah 'music.apple.com' menjadi 'embed.music.apple.com'
+  if (url.includes("music.apple.com")) {
+    return url.replace("music.apple.com", "embed.music.apple.com");
+  }
+
+  // SoundCloud
+  // Menggunakan Widget API SoundCloud
+  if (url.includes("soundcloud.com")) {
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
+  }
 
   return null;
 };
@@ -149,6 +159,12 @@ export default async function PublicPage({
     color: safeAccentColor, // Warna teks mengikuti accent (Wajib string, tidak boleh null)
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
   } : {};
+  const supportButtonStyle: React.CSSProperties = isCustom ? {
+    backgroundColor: safeAccentColor, // Warna solid (kebalikan dari card biasa)
+    color: safeBgColor, // Teks kontras
+    border: 'none',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+  } : {};
 
   // 3. Style Teks (Header, Bio, dll)
   // Jika custom, warna teks diatur di containerStyle (inherited).
@@ -236,6 +252,26 @@ export default async function PublicPage({
                   )}
                 </div>
               );
+            }
+            if (link.type === "SUPPORT") {
+               return (
+                 <a
+                   key={link.id}
+                   href={`/api/link/${link.id}/click`}
+                   target="_blank"
+                   className={cn(
+                     "block mb-4 rounded-xl p-4 text-center font-bold transition-all duration-300 transform hover:scale-[1.02] shadow-md",
+                     // Jika tema standar, gunakan style tombol yang lebih mencolok (misal bg-rose-600)
+                     !isCustom && "bg-rose-600 text-white hover:bg-rose-700 border-none"
+                   )}
+                   style={isCustom ? supportButtonStyle : {}}
+                 >
+                   <div className="flex items-center justify-center gap-2">
+                      <HeartHandshake size={20} />
+                      <span>{link.title ?? "Support Me"}</span>
+                   </div>
+                 </a>
+               )
             }
 
             // B. RENDER CLASSIC LINK (Card)

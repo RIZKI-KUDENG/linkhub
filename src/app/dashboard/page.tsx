@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import LinkCard from "@/components/fragments/LinkCard";
 import EditorSidebar from "@/components/fragments/EditorSidebar";
+import ShareModal from "@/components/fragments/ShareModal"; 
+import { QrCode } from "lucide-react"; 
+
 import useLinks from "@/hooks/useLinks";
 import { redirect } from "next/navigation";
 import {
@@ -25,8 +28,13 @@ export default function DashboardPage() {
   const { links, setLinks, loading, refetch } = useLinks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // 2. State untuk Modal Share
+  const [isShareOpen, setIsShareOpen] = useState(false); 
 
   const sensors = useSensors(useSensor(PointerSensor));
+  
+  // ... useEffect & Session Check (Tidak berubah) ...
   useEffect(() => {
     if (links) {
       const sorted = [...links].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -35,48 +43,29 @@ export default function DashboardPage() {
   }, [loading]);
 
   if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            Masuk dulu sebelum mengelola Link
-          </h2>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white"
-            onClick={() => signIn("google")}
-          >
-            Login dengan Google
-          </button>
-        </div>
-      </div>
-    );
+    return (/* ... Login Screen ... */ <div className="min-h-screen flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold mb-4">Masuk dulu sebelum mengelola Link</h2><button className="px-4 py-2 rounded bg-blue-600 text-white" onClick={() => signIn("google")}>Login dengan Google</button></div></div>);
   }
 
+  // ... Functions (openEditor, handleDragEnd, dll) ...
   function openEditor(id?: string) {
     setEditingId(id ?? null);
     setIsSidebarOpen(true);
   }
-
   function closeEditor() {
     setEditingId(null);
     setIsSidebarOpen(false);
   }
-
-  async function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) { /* ... logika drag and drop ... */ 
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
     const oldIndex = links.findIndex((l) => l.id === active.id);
     const newIndex = links.findIndex((l) => l.id === over.id);
-
     if (oldIndex === -1 || newIndex === -1) return;
-
     const newArray = arrayMove(links, oldIndex, newIndex).map((item, idx) => ({
       ...item,
       sortOrder: idx,
     }));
     setLinks(newArray);
-
     try {
       await fetch("/api/link/reorder", {
         method: "PATCH",
@@ -90,13 +79,15 @@ export default function DashboardPage() {
       refetch();
     }
   }
+
   const handleRedirect = () => {
     redirect(`/u/${session.user.username}`);
   };
+
   return (
     <div className="min-h-screen p-6 bg-slate-50 text-slate-900">
       <div className="max-w-5xl mx-auto">
-        <header className="flex items-center justify-between mb-6">
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="text-3xl font-bold">Dashboard LinkHub</h1>
             <p className="text-sm text-slate-600">
@@ -104,36 +95,49 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* 3. Tombol QR Code Baru */}
             <button
-              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded hover:bg-slate-50 transition-colors"
+              title="Tampilkan QR Code"
+            >
+              <QrCode size={18} />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               onClick={() => openEditor()}
             >
               + Tambah Link
             </button>
+            
+            {/* Tombol Lainnya */}
             <button
-              className="px-4 py-2 bg-red-600 text-white rounded"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
-              Logout
-            </button>
-            <button
-              className="px-4 py-2 bg-indigo-600 text-white rounded"
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
               onClick={handleRedirect}
             >
               Profile
             </button>
-            <a
+             <a
               href="/dashboard/settings"
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
             >
               Settings
             </a>
+             <button
+              className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded transition-colors"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              Logout
+            </button>
           </div>
         </header>
 
         <main>
-          {loading ? (
+          {/* ... Main Content (List Links / DndContext) ... */}
+           {loading ? (
             <div className="text-center py-10">Loading...</div>
           ) : links.length === 0 ? (
             <div className="text-center py-10">
@@ -191,6 +195,15 @@ export default function DashboardPage() {
           refetch();
         }}
       />
+
+      {/* 4. Pasang Component Modal */}
+      {session?.user?.username && (
+        <ShareModal 
+            username={session.user.username} 
+            open={isShareOpen} 
+            onOpenChange={setIsShareOpen} 
+        />
+      )}
     </div>
   );
 }

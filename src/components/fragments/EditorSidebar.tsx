@@ -9,6 +9,7 @@ import {
   LayoutList,
   Share2,
   PlayCircle,
+  Heart
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,7 @@ type LinkForm = {
   description?: string;
   imageUrl?: string;
   category?: string;
-  type: "CLASSIC" | "SOCIAL" | "EMBED";
+  type: "CLASSIC" | "SOCIAL" | "EMBED" | "SUPPORT";
 };
 
 export default function EditorSidebar({
@@ -181,6 +182,7 @@ export default function EditorSidebar({
                 { id: "CLASSIC", label: "Tautan", icon: LayoutList },
                 { id: "SOCIAL", label: "Sosial", icon: Share2 },
                 { id: "EMBED", label: "Embed", icon: PlayCircle },
+                { id: "SUPPORT", label: "Support", icon: Heart },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -204,6 +206,8 @@ export default function EditorSidebar({
                 "Akan muncul sebagai ikon kecil di footer profil."}
               {form.type === "EMBED" &&
                 "Video YouTube atau Spotify akan diputar langsung di halaman."}
+                {form.type === "SUPPORT" &&
+                "Tombol khusus untuk Saweria, Trakteer, atau PayPal."}
             </p>
           </div>
           {/* URL Input */}
