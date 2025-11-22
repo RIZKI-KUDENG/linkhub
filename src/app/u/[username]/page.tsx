@@ -5,15 +5,6 @@ import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
 import { ThemeKey, themes } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Mail, Globe, HeartHandshake } from "lucide-react";
-import {
-  FaInstagram,
-  FaTwitter,
-  FaFacebook,
-  FaLinkedin,
-  FaGithub,
-  FaPaypal,
-} from "react-icons/fa6";
 import { unstable_cache } from "next/cache";
 import PublicLinkItem from "@/components/fragments/PublicLinkTheme";
 
@@ -35,49 +26,6 @@ const getUserProfile = unstable_cache(
     tags: ["user-profile"],
   }
 );
-
-// --- HELPER FUNCTIONS ---
-const getSocialIcon = (url: string) => {
-  const u = url.toLowerCase();
-  if (u.includes("instagram")) return <FaInstagram />;
-  if (u.includes("twitter") || u.includes("x.com")) return <FaTwitter />;
-  if (u.includes("facebook")) return <FaFacebook />;
-  if (u.includes("linkedin")) return <FaLinkedin />;
-  if (u.includes("github")) return <FaGithub />;
-  if (u.includes("mailto")) return <Mail />;
-  return <Globe />;
-};
-
-const getEmbedUrl = (url: string) => {
-  // YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-
-  // Spotify (Support Track, Album, Playlist, Episode)
-  const spMatch = url.match(
-    /open\.spotify\.com\/(track|album|playlist|episode)\/([\w]+)/
-  );
-  if (spMatch)
-    return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
-
-  // Apple Music
-  // Ubah 'music.apple.com' menjadi 'embed.music.apple.com'
-  if (url.includes("music.apple.com")) {
-    return url.replace("music.apple.com", "embed.music.apple.com");
-  }
-
-  // SoundCloud
-  // Menggunakan Widget API SoundCloud
-  if (url.includes("soundcloud.com")) {
-    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(
-      url
-    )}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
-  }
-
-  return null;
-};
-
-// --- METADATA GENERATION ---
 export async function generateMetadata({
   params,
 }: {
@@ -132,18 +80,7 @@ export default async function PublicPage({
   if (!user) {
     notFound();
   }
-  // LOGIKA BARU: Sanitasi Data
-  const sanitizedLinks = user.links.map((link) => {
-    const hasPassword = !!link.password && link.password.length > 0;
-    return {
-      ...link,
-      hasPassword,
-      // Hapus data rahasia sebelum dikirim ke Client Component
-      password: null,
-      // Jika ada password, sembunyikan URL asli dari source code HTML
-      url: hasPassword ? "" : link.url,
-    };
-  });
+
 
   // --- LOGIKA TEMA (CUSTOM VS STANDARD) ---
   const isCustom = user.theme === "custom";
