@@ -19,6 +19,8 @@ const profileSchema = z.object({
   bio: z.string().max(160).optional(),
   image: z.string().url("URL tidak valid").optional().or(z.literal("")),
   theme: z.string().optional(),
+  customTitle: z.string().max(60).optional(),
+  customDescription: z.string().max(160).optional(),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -29,6 +31,8 @@ type UserData = {
     bio?: string | null;
     image?: string | null;
     theme?: string | null;
+    customTitle?: string | null;
+    customDescription?: string | null;
   };
 
 export default function SettingsPage(){
@@ -64,6 +68,8 @@ useEffect(() => {
            setValue("bio", user.bio || "");
            setValue("image", user.image || "");
            setValue("theme", user.theme || "default");
+           setValue("customTitle", user.customTitle || "");
+           setValue("customDescription", user.customDescription || "");
         })
         .catch((err) => {
             console.error("Gagal memuat profil:", err);
@@ -236,6 +242,43 @@ const onSubmit = async (data: ProfileForm) => {
               ))}
             </div>
           </div>
+          {/* --- TAMBAHAN BAGIAN SEO --- */}
+          <div className="pt-4 border-t">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">Pengaturan SEO (Opsional)</h2>
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Custom Page Title
+                    </label>
+                    <input
+                        {...register("customTitle")}
+                        className="w-full p-2 border rounded-md text-sm"
+                        placeholder="Contoh: Rizki Kudeng - Digital Creator"
+                    />
+                    <div className="flex justify-between mt-1">
+                        {errors.customTitle && <p className="text-red-500 text-xs">{errors.customTitle.message}</p>}
+                        <p className="text-xs text-slate-400 ml-auto">Akan muncul di tab browser & Google</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Meta Description
+                    </label>
+                    <textarea
+                        {...register("customDescription")}
+                        rows={2}
+                        className="w-full p-2 border rounded-md text-sm resize-none"
+                        placeholder="Deskripsi singkat untuk mesin pencari..."
+                    />
+                    <div className="flex justify-between mt-1">
+                        {errors.customDescription && <p className="text-red-500 text-xs">{errors.customDescription.message}</p>}
+                        <p className="text-xs text-slate-400 ml-auto">Maks. 160 karakter</p>
+                    </div>
+                </div>
+            </div>
+          </div>
+          {/* -------------------------- */}
 
           {/* Submit Button */}
           <div className="pt-4">

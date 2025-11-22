@@ -23,6 +23,8 @@ model User {
   image          String?     @map("avatarUrl") 
   bio            String?    
   theme          String     @default("default")
+  customTitle       String?
+  customDescription String?
   createdAt      DateTime  @default(now())
 
   links          Link[]

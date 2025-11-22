@@ -72,10 +72,15 @@ export async function generateMetadata({
       description: "Profil tidak ditemukan.",
     };
   }
-
+  const pageTitle = user.customTitle || `@${user.username} · LinkHub`;
+  const pageDescription =
+    user.customDescription ||
+    (user.bio
+      ? user.bio
+      : `Lihat koleksi link, tools, dan portfolio dari @${user.username}.`);
   return {
-    title: `@${user.username} · LinkHub`,
-    description: `Lihat koleksi link, tools, dan portfolio dari @${user.username}.`,
+    title: pageTitle,
+    description: pageDescription,
     openGraph: {
       title: `@${user.username} · LinkHub`,
       description: `Lihat koleksi link visual dari @${user.username}.`,
