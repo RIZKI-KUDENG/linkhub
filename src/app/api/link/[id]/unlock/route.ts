@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
 
 export async function POST(
   req: Request,
@@ -18,8 +19,13 @@ export async function POST(
     return NextResponse.json({ error: "Link not found" }, { status: 404 });
   }
 
-  if (link.password !== password) {
-    return NextResponse.json({ error: "Password salah" }, { status: 401 });
+  if (!link.password) {
+     return NextResponse.json({ url: `/api/link/${id}/click` });
+  }
+  const isValid = await compare(password, link.password);
+
+  if (!isValid) {
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
   return NextResponse.json({ url: `/api/link/${id}/click` });

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { hash } from "bcryptjs";
 
 export async function GET(
   req: Request,
@@ -17,8 +18,7 @@ export async function GET(
     where: { id, userId: session.user.id },
   });
 
-  if (!link)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!link) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json(link);
 }
@@ -36,6 +36,12 @@ export async function PATCH(
   const data = await req.json();
 
   try {
+    let passwordUpdate = undefined;
+    if (data.password) {
+      passwordUpdate = await hash(data.password, 10);
+    } else if (data.password === "") {
+      passwordUpdate = null;
+    }
     const updated = await prisma.link.update({
       where: { id, userId: session.user.id },
       data: {
@@ -47,9 +53,8 @@ export async function PATCH(
         type: data.type,
         sortOrder: data.sortOrder,
         isSensitive: data.isSensitive,
-        password: data.password === "" ? null : data.password,
-      }
-
+        ...(data.password !== undefined && { password: passwordUpdate }),
+      },
     });
     return NextResponse.json(updated);
   } catch (error) {

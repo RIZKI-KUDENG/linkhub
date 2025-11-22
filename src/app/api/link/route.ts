@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { hash} from "bcryptjs";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
   const data = await req.json();
 
   try {
+    const hashedPassword = data.password ? await hash(data.password, 10) : null;
     const link = await prisma.link.create({
         data: {
         url: data.url,
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
         type: data.type || "CLASSIC",
         userId: session.user.id,
         isSensitive: data.isSensitive || false,
-        password: data.password || null,
+        password: hashedPassword
         },
     });
     return NextResponse.json(link);

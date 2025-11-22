@@ -61,12 +61,17 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
     if (!isRevealed) {
       e.preventDefault();
       const confirm = window.confirm("Link ini mungkin berisi konten sensitif (18+). Lanjutkan?");
-      if (confirm) setIsRevealed(true);
+      if (confirm) {
+        setIsRevealed(true)
+      if(link.password){
+        setShowPasswordModal(true)
+      }
+      };
       return;
     }
 
     // 2. Cek Password
-    if (link.hasPassword) { // Field 'hasPassword' kita inject di server component
+    if (link.password) { // Field 'hasPassword' kita inject di server component
       e.preventDefault();
       setShowPasswordModal(true);
       return;
@@ -74,6 +79,8 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
     
     // Jika aman, biarkan navigasi standar (href) berjalan
   };
+  console.log(link)
+  // Handler Unlock
 
   const handleUnlock = async () => {
     setIsUnlocking(true);
