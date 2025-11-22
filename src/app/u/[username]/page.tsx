@@ -12,9 +12,10 @@ import {
   FaFacebook,
   FaLinkedin,
   FaGithub,
-  FaPaypal
+  FaPaypal,
 } from "react-icons/fa6";
 import { unstable_cache } from "next/cache";
+import PublicLinkItem from "@/components/fragments/PublicLinkTheme";
 
 // --- CACHED DATA FETCHING ---
 const getUserProfile = unstable_cache(
@@ -53,8 +54,11 @@ const getEmbedUrl = (url: string) => {
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
 
   // Spotify (Support Track, Album, Playlist, Episode)
-  const spMatch = url.match(/open\.spotify\.com\/(track|album|playlist|episode)\/([\w]+)/);
-  if (spMatch) return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
+  const spMatch = url.match(
+    /open\.spotify\.com\/(track|album|playlist|episode)\/([\w]+)/
+  );
+  if (spMatch)
+    return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
 
   // Apple Music
   // Ubah 'music.apple.com' menjadi 'embed.music.apple.com'
@@ -65,7 +69,9 @@ const getEmbedUrl = (url: string) => {
   // SoundCloud
   // Menggunakan Widget API SoundCloud
   if (url.includes("soundcloud.com")) {
-    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(
+      url
+    )}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
   }
 
   return null;
@@ -122,13 +128,25 @@ export default async function PublicPage({
 }) {
   const { username } = await params;
   const user = await getUserProfile(username);
-  
+
   if (!user) {
     notFound();
   }
+  // LOGIKA BARU: Sanitasi Data
+  const sanitizedLinks = user.links.map((link) => {
+    const hasPassword = !!link.password && link.password.length > 0;
+    return {
+      ...link,
+      hasPassword,
+      // Hapus data rahasia sebelum dikirim ke Client Component
+      password: null,
+      // Jika ada password, sembunyikan URL asli dari source code HTML
+      url: hasPassword ? "" : link.url,
+    };
+  });
 
   // --- LOGIKA TEMA (CUSTOM VS STANDARD) ---
-  const isCustom = user.theme === 'custom';
+  const isCustom = user.theme === "custom";
   // Ambil tema standar sebagai fallback atau jika tidak custom
   const standardTheme = themes[user.theme as ThemeKey] || themes.default;
 
@@ -136,35 +154,43 @@ export default async function PublicPage({
   const contentLinks = user.links.filter((l) => l.type !== "SOCIAL");
 
   // SAFE VALUES: Menyiapkan nilai default string agar tidak null
-  const safeBgColor = user.customBgColor || '#ffffff';
-  const safeAccentColor = user.customAccentColor || '#000000';
-  const safeFont = user.customFont || 'inherit';
+  const safeBgColor = user.customBgColor || "#ffffff";
+  const safeAccentColor = user.customAccentColor || "#000000";
+  const safeFont = user.customFont || "inherit";
 
   // 1. Style Container Utama (Background & Font)
-  const containerStyle: React.CSSProperties = isCustom ? {
-    backgroundColor: safeBgColor,
-    backgroundImage: user.customBgImage ? `url(${user.customBgImage})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed', // Efek parallax sederhana
-    fontFamily: safeFont,
-    color: safeAccentColor,
-  } : {};
+  const containerStyle: React.CSSProperties = isCustom
+    ? {
+        backgroundColor: safeBgColor,
+        backgroundImage: user.customBgImage
+          ? `url(${user.customBgImage})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed", // Efek parallax sederhana
+        fontFamily: safeFont,
+        color: safeAccentColor,
+      }
+    : {};
 
   // 2. Style Kartu Link
-  const cardStyle: React.CSSProperties = isCustom ? {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)', // Sedikit transparan agar BG terlihat
-    backdropFilter: 'blur(8px)', // Efek blur (glassmorphism)
-    border: `1px solid ${safeAccentColor}20`, // Border tipis transparan (menggunakan safeAccentColor)
-    color: safeAccentColor, // Warna teks mengikuti accent (Wajib string, tidak boleh null)
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-  } : {};
-  const supportButtonStyle: React.CSSProperties = isCustom ? {
-    backgroundColor: safeAccentColor, // Warna solid (kebalikan dari card biasa)
-    color: safeBgColor, // Teks kontras
-    border: 'none',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-  } : {};
+  const cardStyle: React.CSSProperties = isCustom
+    ? {
+        backgroundColor: "rgba(255, 255, 255, 0.85)", // Sedikit transparan agar BG terlihat
+        backdropFilter: "blur(8px)", // Efek blur (glassmorphism)
+        border: `1px solid ${safeAccentColor}20`, // Border tipis transparan (menggunakan safeAccentColor)
+        color: safeAccentColor, // Warna teks mengikuti accent (Wajib string, tidak boleh null)
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      }
+    : {};
+  const supportButtonStyle: React.CSSProperties = isCustom
+    ? {
+        backgroundColor: safeAccentColor, // Warna solid (kebalikan dari card biasa)
+        color: safeBgColor, // Teks kontras
+        border: "none",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      }
+    : {};
 
   // 3. Style Teks (Header, Bio, dll)
   // Jika custom, warna teks diatur di containerStyle (inherited).
@@ -180,7 +206,6 @@ export default async function PublicPage({
       style={containerStyle} // Terapkan inline style custom
     >
       <div className="max-w-2xl mx-auto mt-10 w-full flex-1">
-        
         {/* --- PROFILE HEADER --- */}
         <div className="text-center mb-10">
           <div className="relative w-24 h-24 mx-auto mb-4">
@@ -193,7 +218,9 @@ export default async function PublicPage({
                 alt={user.name || "Profile"}
                 className={cn(
                   "w-full h-full rounded-full object-cover shadow-sm",
-                  isCustom ? "border-2 border-white/50" : "border-2 border-slate-100"
+                  isCustom
+                    ? "border-2 border-white/50"
+                    : "border-2 border-slate-100"
                 )}
               />
             ) : (
@@ -208,13 +235,18 @@ export default async function PublicPage({
               </div>
             )}
           </div>
-          
+
           <h1 className={cn("text-2xl font-bold mb-2", textClass)}>
             @{user.name}
           </h1>
-          
+
           {user.bio && (
-            <p className={cn("text-sm opacity-90 max-w-md mx-auto whitespace-pre-wrap", textClass)}>
+            <p
+              className={cn(
+                "text-sm opacity-90 max-w-md mx-auto whitespace-pre-wrap",
+                textClass
+              )}
+            >
               {user.bio}
             </p>
           )}
@@ -222,97 +254,16 @@ export default async function PublicPage({
 
         {/* --- LINKS GRID (MASONRY) --- */}
         <MasonryClient>
-          {contentLinks.map((link) => {
-            // A. RENDER EMBED (YouTube/Spotify)
-            if (link.type === "EMBED") {
-              const embedUrl = getEmbedUrl(link.url);
-              if (!embedUrl) return null;
-
-              return (
-                <div
-                  key={link.id}
-                  className="mb-4 overflow-hidden rounded-xl shadow-md bg-black"
-                >
-                  <iframe
-                    src={embedUrl}
-                    className="w-full aspect-video"
-                    allow="encrypted-media; picture-in-picture"
-                    allowFullScreen
-                  />
-                  {link.title && (
-                    <div
-                      className={cn(
-                        "p-3 text-sm font-medium",
-                        !isCustom && [standardTheme.card, standardTheme.text]
-                      )}
-                      style={isCustom ? cardStyle : {}}
-                    >
-                      {link.title}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-            if (link.type === "SUPPORT") {
-               return (
-                 <a
-                   key={link.id}
-                   href={`/api/link/${link.id}/click`}
-                   target="_blank"
-                   className={cn(
-                     "block mb-4 rounded-xl p-4 text-center font-bold transition-all duration-300 transform hover:scale-[1.02] shadow-md",
-                     // Jika tema standar, gunakan style tombol yang lebih mencolok (misal bg-rose-600)
-                     !isCustom && "bg-rose-600 text-white hover:bg-rose-700 border-none"
-                   )}
-                   style={isCustom ? supportButtonStyle : {}}
-                 >
-                   <div className="flex items-center justify-center gap-2">
-                      <HeartHandshake size={20} />
-                      <span>{link.title ?? "Support Me"}</span>
-                   </div>
-                 </a>
-               )
-            }
-
-            // B. RENDER CLASSIC LINK (Card)
-            return (
-              <a
-                key={link.id}
-                href={`/api/link/${link.id}/click`}
-                target="_blank"
-                className={cn(
-                  "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-[1.02]",
-                  !isCustom && [standardTheme.card, standardTheme.cardHover]
-                )}
-                style={isCustom ? cardStyle : {}} // Terapkan custom style kartu
-              >
-                {link.imageUrl && (
-                  <div className="relative w-full h-40">
-                    <Image
-                        src={link.imageUrl}
-                        alt={link.title ?? link.url}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  </div>
-                )}
-
-                <div className="p-4">
-                  <h3 className={cn("font-bold text-sm mb-1", textClass)}>
-                    {link.title ?? link.url}
-                  </h3>
-
-                  {link.description && (
-                    <p className={cn("text-xs line-clamp-2 opacity-80", textClass)}>
-                      {link.description}
-                    </p>
-                  )}
-                </div>
-              </a>
-            );
-          })}
-
+          {contentLinks.map((link) => (
+            <PublicLinkItem
+              key={link.id}
+              link={link}
+              theme={standardTheme}
+              isCustom={isCustom}
+              cardStyle={cardStyle}
+              textClass={textClass}
+            />
+          ))}
           {user.links.length === 0 && (
             <div className="text-center py-10 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed">
               <p>Belum ada link yang ditampilkan.</p>
@@ -326,26 +277,26 @@ export default async function PublicPage({
         <div className="max-w-2xl mx-auto mt-12 pb-8 w-full">
           <div className="flex flex-wrap justify-center gap-4">
             {socialLinks.map((link) => (
-              <a
+              <PublicLinkItem
                 key={link.id}
-                href={`/api/link/${link.id}/click`}
-                target="_blank"
-                className={cn(
-                  "p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-sm flex items-center justify-center text-xl",
-                  !isCustom && [standardTheme.card, standardTheme.text]
-                )}
-                style={isCustom ? cardStyle : {}}
-                title={link.title || link.url}
-              >
-                {getSocialIcon(link.url)}
-              </a>
+                link={link}
+                theme={standardTheme}
+                isCustom={isCustom}
+                cardStyle={cardStyle}
+                textClass={textClass}
+              />
             ))}
           </div>
         </div>
       )}
 
       {/* --- BRANDING --- */}
-      <div className={cn("text-center pb-6 text-xs opacity-60 font-medium", textClass)}>
+      <div
+        className={cn(
+          "text-center pb-6 text-xs opacity-60 font-medium",
+          textClass
+        )}
+      >
         Powered by LinkHub
       </div>
     </div>

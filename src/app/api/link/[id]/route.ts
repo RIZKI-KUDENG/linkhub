@@ -38,7 +38,18 @@ export async function PATCH(
   try {
     const updated = await prisma.link.update({
       where: { id, userId: session.user.id },
-      data,
+      data: {
+        url: data.url,
+        title: data.title,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        category: data.category,
+        type: data.type,
+        sortOrder: data.sortOrder,
+        isSensitive: data.isSensitive,
+        password: data.password === "" ? null : data.password,
+      }
+
     });
     return NextResponse.json(updated);
   } catch (error) {

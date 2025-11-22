@@ -37,6 +37,8 @@ export async function POST(req: Request) {
         category: data.category,
         type: data.type || "CLASSIC",
         userId: session.user.id,
+        isSensitive: data.isSensitive || false,
+        password: data.password || null,
         },
     });
     return NextResponse.json(link);

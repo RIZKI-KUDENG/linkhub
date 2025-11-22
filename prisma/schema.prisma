@@ -43,10 +43,12 @@ model Link{
   description String?
   imageUrl    String?
   category    String?
+  type        String    @default("CLASSIC")
   sortOrder   Int       @default(0)
   clicks      Int       @default(0)
+  isSensitive Boolean  @default(false)
+  password    String?
   createdAt   DateTime  @default(now())
-  type        String    @default("CLASSIC")
 
   userId      String
   user        User      @relation(fields: [userId], references: [id])

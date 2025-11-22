@@ -9,7 +9,9 @@ import {
   LayoutList,
   Share2,
   PlayCircle,
-  Heart
+  Heart,
+  Lock,
+  ShieldAlert,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -21,6 +23,8 @@ type LinkForm = {
   imageUrl?: string;
   category?: string;
   type: "CLASSIC" | "SOCIAL" | "EMBED" | "SUPPORT";
+  isSensitive: boolean;
+  password?: string;
 };
 
 export default function EditorSidebar({
@@ -42,6 +46,8 @@ export default function EditorSidebar({
     imageUrl: "",
     category: "",
     type: "CLASSIC",
+    isSensitive: false,
+    password: "",
   });
   const [isFetchingMeta, setIsFetchingMeta] = useState(false);
   const [activeTab, setActiveTab] = useState<"scrape" | "custom">("scrape"); // Tab state
@@ -57,6 +63,8 @@ export default function EditorSidebar({
           imageUrl: "",
           category: "",
           type: "CLASSIC",
+          isSensitive: false,
+          password: "",
         });
         setActiveTab("scrape"); // Default tab
         return;
@@ -72,6 +80,8 @@ export default function EditorSidebar({
           imageUrl: data.imageUrl ?? "",
           category: data.category ?? "",
           type: data.type ?? "CLASSIC",
+          isSensitive: data.isSensitive ?? false,
+          password: data.password ?? "",
         });
       } catch (err) {
         console.error(err);
@@ -206,7 +216,7 @@ export default function EditorSidebar({
                 "Akan muncul sebagai ikon kecil di footer profil."}
               {form.type === "EMBED" &&
                 "Video YouTube atau Spotify akan diputar langsung di halaman."}
-                {form.type === "SUPPORT" &&
+              {form.type === "SUPPORT" &&
                 "Tombol khusus untuk Saweria, Trakteer, atau PayPal."}
             </p>
           </div>
@@ -231,6 +241,53 @@ export default function EditorSidebar({
               />
             </div>
           </div>
+          {/* --- BAGIAN KEAMANAN (BARU) --- */}
+          <div className="space-y-3 border rounded-xl p-4 bg-slate-50/50">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Keamanan & Privasi
+            </h3>
+
+            {/* Sensitive Toggle */}
+            <label className="flex items-center justify-between cursor-pointer">
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={16} className="text-orange-500" />
+                <span className="text-sm font-medium text-slate-700">
+                  Konten Sensitif (18+)
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={form.isSensitive}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, isSensitive: e.target.checked }))
+                }
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+            </label>
+
+            {/* Password Input */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Lock size={16} className="text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">
+                  Password (Opsional)
+                </span>
+              </div>
+              <input
+                type="text"
+                value={form.password || ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, password: e.target.value }))
+                }
+                placeholder="Biarkan kosong jika publik"
+                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              />
+              <p className="text-[10px] text-slate-400">
+                User harus memasukkan password ini untuk membuka link.
+              </p>
+            </div>
+          </div>
+          {/* -------------------------- */}
 
           {/* Thumbnail Section (Tabs) */}
           <div className="space-y-3 border rounded-xl p-4 bg-slate-50/50">
