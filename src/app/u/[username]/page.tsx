@@ -5,7 +5,7 @@ import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
 import { ThemeKey, themes } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Mail, Globe, Link2 as LinkIcon } from "lucide-react";
+import { Mail, Globe } from "lucide-react";
 import {
   FaInstagram,
   FaTwitter,
@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa6";
 import { unstable_cache } from "next/cache";
 
+// --- CACHED DATA FETCHING ---
 const getUserProfile = unstable_cache(
   async (username: string) => {
     return await prisma.user.findUnique({
@@ -26,12 +27,14 @@ const getUserProfile = unstable_cache(
       },
     });
   },
-  ["user-profile-data"], // Cache Key (harus unik untuk fungsi ini)
+  ["user-profile-data"],
   {
-    revalidate: 60, // Revalidate setiap 60 detik (Cache Time-to-Live)
-    tags: ["user-profile"], // Tags untuk invalidasi manual (opsional)
+    revalidate: 60,
+    tags: ["user-profile"],
   }
 );
+
+// --- HELPER FUNCTIONS ---
 const getSocialIcon = (url: string) => {
   const u = url.toLowerCase();
   if (u.includes("instagram")) return <FaInstagram />;
@@ -42,6 +45,7 @@ const getSocialIcon = (url: string) => {
   if (u.includes("mailto")) return <Mail />;
   return <Globe />;
 };
+
 const getEmbedUrl = (url: string) => {
   // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
@@ -57,13 +61,13 @@ const getEmbedUrl = (url: string) => {
   return null;
 };
 
+// --- METADATA GENERATION ---
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-
   const user = await getUserProfile(username);
 
   if (!user) {
@@ -72,31 +76,35 @@ export async function generateMetadata({
       description: "Profil tidak ditemukan.",
     };
   }
+
+  // Gunakan Custom SEO jika ada
   const pageTitle = user.customTitle || `@${user.username} · LinkHub`;
   const pageDescription =
     user.customDescription ||
     (user.bio
       ? user.bio
       : `Lihat koleksi link, tools, dan portfolio dari @${user.username}.`);
+
   return {
     title: pageTitle,
     description: pageDescription,
     openGraph: {
-      title: `@${user.username} · LinkHub`,
-      description: `Lihat koleksi link visual dari @${user.username}.`,
+      title: pageTitle,
+      description: pageDescription,
       images: [`/api/og?username=${user.username}`],
       url: `https://linkhub.app/u/${user.username}`,
       type: "profile",
     },
     twitter: {
       card: "summary_large_image",
-      title: `@${user.username} · LinkHub`,
-      description: `Lihat koleksi link visual dari @${user.username}.`,
+      title: pageTitle,
+      description: pageDescription,
       images: [`/api/og?username=${user.username}`],
     },
   };
 }
 
+// --- PAGE COMPONENT ---
 export default async function PublicPage({
   params,
 }: {
@@ -104,21 +112,60 @@ export default async function PublicPage({
 }) {
   const { username } = await params;
   const user = await getUserProfile(username);
+  
   if (!user) {
     notFound();
   }
-  const themeKey = (user.theme as ThemeKey) || "default";
-  const theme = themes[themeKey] || themes.default;
+
+  // --- LOGIKA TEMA (CUSTOM VS STANDARD) ---
+  const isCustom = user.theme === 'custom';
+  // Ambil tema standar sebagai fallback atau jika tidak custom
+  const standardTheme = themes[user.theme as ThemeKey] || themes.default;
+
   const socialLinks = user.links.filter((l) => l.type === "SOCIAL");
   const contentLinks = user.links.filter((l) => l.type !== "SOCIAL");
+
+  // SAFE VALUES: Menyiapkan nilai default string agar tidak null
+  const safeBgColor = user.customBgColor || '#ffffff';
+  const safeAccentColor = user.customAccentColor || '#000000';
+  const safeFont = user.customFont || 'inherit';
+
+  // 1. Style Container Utama (Background & Font)
+  const containerStyle: React.CSSProperties = isCustom ? {
+    backgroundColor: safeBgColor,
+    backgroundImage: user.customBgImage ? `url(${user.customBgImage})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed', // Efek parallax sederhana
+    fontFamily: safeFont,
+    color: safeAccentColor,
+  } : {};
+
+  // 2. Style Kartu Link
+  const cardStyle: React.CSSProperties = isCustom ? {
+    backgroundColor: 'rgba(255, 255, 255, 0.85)', // Sedikit transparan agar BG terlihat
+    backdropFilter: 'blur(8px)', // Efek blur (glassmorphism)
+    border: `1px solid ${safeAccentColor}20`, // Border tipis transparan (menggunakan safeAccentColor)
+    color: safeAccentColor, // Warna teks mengikuti accent (Wajib string, tidak boleh null)
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+  } : {};
+
+  // 3. Style Teks (Header, Bio, dll)
+  // Jika custom, warna teks diatur di containerStyle (inherited).
+  // Jika standard, gunakan class dari theme.ts.
+  const textClass = !isCustom ? standardTheme.text : "";
+
   return (
     <div
       className={cn(
-        "min-h-screen relative p-6 transition-colors duration-300",
-        theme.bg
+        "min-h-screen relative p-6 transition-colors duration-300 flex flex-col",
+        !isCustom && standardTheme.bg // Gunakan class BG standard HANYA jika TIDAK custom
       )}
+      style={containerStyle} // Terapkan inline style custom
     >
-      <div className="max-w-2xl mx-auto mt-10">
+      <div className="max-w-2xl mx-auto mt-10 w-full flex-1">
+        
+        {/* --- PROFILE HEADER --- */}
         <div className="text-center mb-10">
           <div className="relative w-24 h-24 mx-auto mb-4">
             {user.image ? (
@@ -128,37 +175,42 @@ export default async function PublicPage({
                 priority
                 src={user.image}
                 alt={user.name || "Profile"}
-                className="w-full h-full rounded-full object-cover border-2 border-slate-100 shadow-sm"
+                className={cn(
+                  "w-full h-full rounded-full object-cover shadow-sm",
+                  isCustom ? "border-2 border-white/50" : "border-2 border-slate-100"
+                )}
               />
             ) : (
               <div
                 className={cn(
                   "w-full h-full rounded-full flex items-center justify-center text-3xl font-bold border-4 border-white/20",
-                  theme.card,
-                  theme.text
+                  !isCustom && [standardTheme.card, standardTheme.text] //
                 )}
+                style={isCustom ? cardStyle : {}}
               >
                 {user.name?.charAt(0) || "U"}
               </div>
             )}
           </div>
-          <h1 className={cn("text-2xl font-bold mb-2", theme.text)}>
+          
+          <h1 className={cn("text-2xl font-bold mb-2", textClass)}>
             @{user.name}
           </h1>
+          
           {user.bio && (
-            <p
-              className={cn("text-sm opacity-90 max-w-md mx-auto", theme.text)}
-            >
+            <p className={cn("text-sm opacity-90 max-w-md mx-auto whitespace-pre-wrap", textClass)}>
               {user.bio}
             </p>
           )}
         </div>
+
+        {/* --- LINKS GRID (MASONRY) --- */}
         <MasonryClient>
           {contentLinks.map((link) => {
-            // 1. RENDER EMBED
+            // A. RENDER EMBED (YouTube/Spotify)
             if (link.type === "EMBED") {
               const embedUrl = getEmbedUrl(link.url);
-              if (!embedUrl) return null; // Skip jika URL tidak valid
+              if (!embedUrl) return null;
 
               return (
                 <div
@@ -175,9 +227,9 @@ export default async function PublicPage({
                     <div
                       className={cn(
                         "p-3 text-sm font-medium",
-                        theme.card,
-                        theme.text
+                        !isCustom && [standardTheme.card, standardTheme.text]
                       )}
+                      style={isCustom ? cardStyle : {}}
                     >
                       {link.title}
                     </div>
@@ -186,38 +238,37 @@ export default async function PublicPage({
               );
             }
 
-            // 2. RENDER CLASSIC LINK (Kode Lama)
+            // B. RENDER CLASSIC LINK (Card)
             return (
               <a
                 key={link.id}
                 href={`/api/link/${link.id}/click`}
                 target="_blank"
                 className={cn(
-                  "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform",
-                  theme.card,
-                  theme.cardHover
+                  "block mb-4 rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-[1.02]",
+                  !isCustom && [standardTheme.card, standardTheme.cardHover]
                 )}
+                style={isCustom ? cardStyle : {}} // Terapkan custom style kartu
               >
                 {link.imageUrl && (
-                  <img
-                    src={link.imageUrl}
-                    className="w-full object-cover"
-                    alt={link.title ?? link.url}
-                  />
+                  <div className="relative w-full h-40">
+                    <Image
+                        src={link.imageUrl}
+                        alt={link.title ?? link.url}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
                 )}
 
-                <div className="p-3">
-                  <h3 className={cn("font-bold text-sm mb-1", theme.text)}>
+                <div className="p-4">
+                  <h3 className={cn("font-bold text-sm mb-1", textClass)}>
                     {link.title ?? link.url}
                   </h3>
 
                   {link.description && (
-                    <p
-                      className={cn(
-                        "text-xs line-clamp-2 opacity-75",
-                        theme.text
-                      )}
-                    >
+                    <p className={cn("text-xs line-clamp-2 opacity-80", textClass)}>
                       {link.description}
                     </p>
                   )}
@@ -227,12 +278,14 @@ export default async function PublicPage({
           })}
 
           {user.links.length === 0 && (
-            <div className="text-center py-10 text-slate-400 bg-slate-50 rounded-xl border border-dashed">
+            <div className="text-center py-10 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed">
               <p>Belum ada link yang ditampilkan.</p>
             </div>
           )}
         </MasonryClient>
       </div>
+
+      {/* --- SOCIAL LINKS (Footer) --- */}
       {socialLinks.length > 0 && (
         <div className="max-w-2xl mx-auto mt-12 pb-8 w-full">
           <div className="flex flex-wrap justify-center gap-4">
@@ -242,10 +295,10 @@ export default async function PublicPage({
                 href={`/api/link/${link.id}/click`}
                 target="_blank"
                 className={cn(
-                  "p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-sm",
-                  theme.card,
-                  theme.text
+                  "p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-sm flex items-center justify-center text-xl",
+                  !isCustom && [standardTheme.card, standardTheme.text]
                 )}
+                style={isCustom ? cardStyle : {}}
                 title={link.title || link.url}
               >
                 {getSocialIcon(link.url)}
@@ -254,12 +307,9 @@ export default async function PublicPage({
           </div>
         </div>
       )}
-      <div
-        className={cn(
-          "text-center pb-6 text-xs opacity-50 font-medium",
-          theme.text
-        )}
-      >
+
+      {/* --- BRANDING --- */}
+      <div className={cn("text-center pb-6 text-xs opacity-60 font-medium", textClass)}>
         Powered by LinkHub
       </div>
     </div>

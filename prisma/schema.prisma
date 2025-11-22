@@ -25,6 +25,10 @@ model User {
   theme          String     @default("default")
   customTitle       String?
   customDescription String?
+  customFont        String?   @default("Inter") 
+  customBgColor     String?   @default("#ffffff") 
+  customAccentColor String?   @default("#000000") 
+  customBgImage     String?   
   createdAt      DateTime  @default(now())
 
   links          Link[]

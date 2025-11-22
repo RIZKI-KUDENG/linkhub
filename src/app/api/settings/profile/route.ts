@@ -22,6 +22,16 @@ const profileSchema = z.object({
     .string()
     .max(160, "Description maksimal 160 karakter")
     .optional(),
+  customFont: z.string().optional(),
+  customBgColor: z
+    .string()
+    .regex(/^#([0-9a-f]{3}){1,2}$/i, "Invalid Hex Code")
+    .optional(),
+  customAccentColor: z
+    .string()
+    .regex(/^#([0-9a-f]{3}){1,2}$/i, "Invalid Hex Code")
+    .optional(),
+  customBgImage: z.string().optional().or(z.literal("")),
 });
 
 export async function GET(req: Request) {
@@ -43,6 +53,10 @@ export async function GET(req: Request) {
         theme: true,
         customTitle: true,
         customDescription: true,
+        customFont: true,
+        customBgColor: true,
+        customAccentColor: true,
+        customBgImage: true,
       },
     });
 
@@ -82,6 +96,10 @@ export async function PATCH(req: Request) {
       theme,
       customTitle,
       customDescription,
+      customFont,
+      customBgColor,
+      customAccentColor,
+      customBgImage,
     } = result.data;
     if (username !== session.user.username) {
       const existing = await prisma.user.findUnique({ where: { username } });
@@ -101,6 +119,10 @@ export async function PATCH(req: Request) {
         theme: theme,
         customTitle,
         customDescription,
+        customFont,
+        customBgColor,
+        customAccentColor,
+        customBgImage: customBgImage || null,
       },
     });
     return NextResponse.json(updateUser);

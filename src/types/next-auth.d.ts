@@ -7,6 +7,10 @@ declare module "next-auth" {
     theme?: string | null;
     customTitle?: string | null;
     customDescription?: string | null;
+    customFont?: string | null;
+    customBgColor?: string | null;
+    customAccentColor?: string | null;
+    customBgImage?: string | null;
   }
 
   interface Session extends DefaultSession {
@@ -17,6 +21,10 @@ declare module "next-auth" {
       theme?: string | null;
       customTitle?: string | null;
       customDescription?: string | null;
+      customFont?: string | null;
+      customBgColor?: string | null;
+      customAccentColor?: string | null;
+      customBgImage?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -28,5 +36,9 @@ declare module "next-auth/jwt" {
     theme?: string | null;
     customTitle?: string | null;
     customDescription?: string | null;
+    customFont?: string | null;
+    customBgColor?: string | null;
+    customAccentColor?: string | null;
+    customBgImage?: string | null;
   }
 }
