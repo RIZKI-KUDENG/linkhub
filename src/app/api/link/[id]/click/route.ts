@@ -1,18 +1,24 @@
 import { NextResponse, userAgent } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+import { waitUntil } from "@vercel/functions"; // Pastikan ini ter-import
 
-export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: Request,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   const { id } = params;
-const link = await prisma.link.findUnique({
-  where: { id },
+
+  const link = await prisma.link.findUnique({
+    where: { id },
     select: { url: true },
-})
-if (!link) {
+  });
+
+  if (!link) {
     return NextResponse.json({ error: "Link not found" }, { status: 404 });
   }
-const trackingPromise = (async () => {
+  const trackClick = async () => {
     try {
       const { device, browser, os } = userAgent(req);
       const referer = req.headers.get("referer") || "Direct";
@@ -29,13 +35,15 @@ const trackingPromise = (async () => {
         city,
         createdAt: new Date().toISOString(),
       };
+
       const pipeline = redis.pipeline();
-      pipeline.incr(`link:clicks:${id}`); 
-      pipeline.rpush("analytics:queue", JSON.stringify(logData)); 
+      pipeline.incr(`link:clicks:${id}`);
+      pipeline.rpush("analytics:queue", JSON.stringify(logData));
       await pipeline.exec();
     } catch (err) {
       console.error("Redis tracking error", err);
     }
-  })();
+  };
+  waitUntil(trackClick());
   return NextResponse.redirect(link.url);
 }

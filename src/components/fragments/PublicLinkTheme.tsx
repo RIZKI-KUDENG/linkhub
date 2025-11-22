@@ -79,7 +79,6 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
     
     // Jika aman, biarkan navigasi standar (href) berjalan
   };
-  console.log(link)
   // Handler Unlock
 
   const handleUnlock = async () => {
