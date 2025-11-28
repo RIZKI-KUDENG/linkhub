@@ -1,18 +1,18 @@
 "use client";
-
+import { Link } from "@prisma/client";
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Lock, EyeOff, ArrowRight, PlayCircle, HeartHandshake } from "lucide-react";
+import { Lock, EyeOff, ArrowRight,  HeartHandshake } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { themes } from "@/lib/theme";
 
 // Helper icon (bisa dipindah ke utils jika mau dipakai ulang)
 import { FaInstagram, FaTwitter, FaFacebook, FaLinkedin, FaGithub } from "react-icons/fa6";
@@ -39,13 +39,22 @@ const getEmbedUrl = (url: string) => {
   if (url.includes("soundcloud.com")) return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
   return null;
 };
-
+type Theme = typeof themes.default
 type LinkItemProps = {
-  link: any; // Gunakan tipe yang sesuai dari Prisma
-  theme: any;
+  link: Link; 
+  theme: Theme;
   isCustom: boolean;
   cardStyle: any;
   textClass: string;
+};
+type PasswordDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: () => void;
+  loading: boolean;
+  error: string;
+  value: string;
+  onChange: (val: string) => void;
 };
 
 export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textClass }: LinkItemProps) {
@@ -138,7 +147,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
   // 1. Embed
   if (link.type === "EMBED") {
     // Jika dipassword, jangan render iframe langsung, tampilkan placeholder Lock
-    if (link.hasPassword) {
+    if (link.password) {
        return (
          <div onClick={handleClick} className={cn("mb-4 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer border border-dashed border-slate-300", !isCustom && theme.card)} style={isCustom ? cardStyle : {}}>
             <Lock size={24} className="mb-2 opacity-70" />
@@ -173,7 +182,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
   }
 
   // 2. Social & Classic & Support
-  const href = link.hasPassword ? "#" : `/api/link/${link.id}/click`;
+  const href = link.password ? "#" : `/api/link/${link.id}/click`;
   
   // Render Logic khusus tipe
   let content;
@@ -183,7 +192,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
         <a href={href} onClick={handleClick} target="_blank" 
            className={cn("p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-sm flex items-center justify-center text-xl", !isCustom && [theme.card, theme.text])}
            style={isCustom ? cardStyle : {}}
-           title={link.title}>
+           title={link.title ? link.title : "Social Media"}>
            {getSocialIcon(link.url)}
         </a>
         <PasswordDialog open={showPasswordModal} onOpenChange={setShowPasswordModal} onSubmit={handleUnlock} loading={isUnlocking} error={error} value={passwordInput} onChange={setPasswordInput} />
@@ -192,7 +201,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
   } else if (link.type === "SUPPORT") {
       content = (
         <div className="flex items-center justify-center gap-2">
-            {link.hasPassword ? <Lock size={18} /> : <HeartHandshake size={20} />}
+            {link.password ? <Lock size={18} /> : <HeartHandshake size={20} />}
             <span>{link.title ?? "Support Me"}</span>
         </div>
       );
@@ -201,8 +210,8 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
         <>
             {link.imageUrl && (
                 <div className="relative w-full h-40">
-                <Image src={link.imageUrl} alt={link.title} fill className="object-cover" sizes="50vw" />
-                {link.hasPassword && (
+                <Image src={link.imageUrl} alt={link.title ? link.title : "Link Terkunci"} fill className="object-cover" sizes="50vw" />
+                {link.password && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
                         <Lock size={32} />
                     </div>
@@ -213,11 +222,11 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
                 <div>
                     <h3 className={cn("font-bold text-sm mb-1 flex items-center gap-2", textClass)}>
                         {link.title ?? "Link Terkunci"}
-                        {link.hasPassword && !link.imageUrl && <Lock size={14} className="opacity-50" />}
+                        {link.password && !link.imageUrl && <Lock size={14} className="opacity-50" />}
                     </h3>
                     {link.description && <p className={cn("text-xs line-clamp-2 opacity-80", textClass)}>{link.description}</p>}
                 </div>
-                {!link.hasPassword && <ArrowRight size={16} className={cn("opacity-50", textClass)} />}
+                {!link.password && <ArrowRight size={16} className={cn("opacity-50", textClass)} />}
             </div>
         </>
       );
@@ -243,7 +252,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
       <a
         href={href}
         onClick={handleClick}
-        target={link.hasPassword ? undefined : "_blank"}
+        target={link.password ? undefined : "_blank"}
         className={containerClasses}
         style={isCustom ? (link.type === "SUPPORT" ? customSupportStyle : cardStyle) : {}}
       >
@@ -264,7 +273,7 @@ export default function PublicLinkItem({ link, theme, isCustom, cardStyle, textC
 }
 
 // Sub-component Modal Password
-function PasswordDialog({ open, onOpenChange, onSubmit, loading, error, value, onChange }: any) {
+function PasswordDialog({ open, onOpenChange, onSubmit, loading, error, value, onChange }: PasswordDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs">

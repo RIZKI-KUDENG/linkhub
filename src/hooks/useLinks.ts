@@ -1,17 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Link } from "@prisma/client";
 
-type Link = {
-  id: string;
-  url: string;
-  title?: string | null;
-  description?: string | null;
-  imageUrl?: string | null;
-  category?: string | null;
-  sortOrder: number;
-  clicks: number;
-};
+
 
 export default function useLinks() {
   const [links, setLinks] = useState<Link[]>([]);
@@ -27,13 +19,13 @@ export default function useLinks() {
         }
         throw new Error(`Error fetching links: ${res.statusText}`);
       }
-      const data = await res.json();
+      const data: Link[] = await res.json();
       if (!Array.isArray(data)) {
         console.warn("Data links bukan array:", data);
         return;
       }
-      const normalized = data.map((d: any, i: number) => ({ ...d, sortOrder: typeof d.sortOrder === "number" ? d.sortOrder : i }));
-      normalized.sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+      const normalized = data.map((d, i) => ({ ...d, sortOrder: typeof d.sortOrder === "number" ? d.sortOrder : i }));
+      normalized.sort((a, b) => a.sortOrder - b.sortOrder);
       setLinks(normalized);
     } catch (err) {
       console.error(err);

@@ -13,7 +13,6 @@ import {
   Lock,
   ShieldAlert,
 } from "lucide-react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type LinkForm = {
@@ -158,6 +157,7 @@ export default function EditorSidebar({
       setLoading(false);
     }
   }
+  type LinkType = LinkForm["type"];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end isolate">
@@ -197,7 +197,7 @@ export default function EditorSidebar({
                 <button
                   key={item.id}
                   onClick={() =>
-                    setForm((f) => ({ ...f, type: item.id as any }))
+                    setForm((f) => ({ ...f, type: item.id as LinkType }))
                   }
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-all",

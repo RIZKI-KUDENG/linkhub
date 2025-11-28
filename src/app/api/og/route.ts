@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
+type SatoriNode = {
+  type: string;
+  props: {
+    style?: React.CSSProperties;
+    children?: string | SatoriNode | SatoriNode[];
+    src?: string;
+    width?: number;
+    height?: number;
+    [key: string]: any; // Satori props bisa dinamis
+  };
+};
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -36,7 +47,7 @@ export async function GET(req: Request) {
   );
 
   // Satori object tree (NO JSX!)
-  const ogTree = {
+  const ogTree: SatoriNode = {
     type: "div",
     props: {
       style: {

@@ -4,13 +4,27 @@ import { useEffect, useState, use } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Loader2, ArrowLeft, MousePointer2, Globe, Smartphone } from "lucide-react";
 import Link from "next/link";
-
-// Warna untuk Pie Chart
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+type AnalyticsData = {
+  totalClicks: number;
+  chartData: Record<string, number>;
+  devices: {
+    device: string;
+    _count: { id: number };
+  }[];
+  referrers: {
+    referrer: string;
+    _count: { id: number };
+  }[];
+  locations: {
+    country: string;
+    _count: { id: number };
+  }[];
+};
 
 export default function AnalyticsPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params); // Unboxing params di Next.js 15+
-  const [data, setData] = useState<any>(null);
+  const params = use(props.params); 
+  const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -130,7 +144,7 @@ export default function AnalyticsPage(props: { params: Promise<{ id: string }> }
             </div>
             {/* Legend Manual */}
             <div className="flex flex-wrap gap-4 justify-center mt-4 text-xs">
-               {data.devices.map((entry: any, index: number) => (
+               {data.devices.map((entry, index: number) => (
                  <div key={index} className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                     <span className="capitalize">{entry.device || "Unknown"} ({entry._count.id})</span>
@@ -144,7 +158,7 @@ export default function AnalyticsPage(props: { params: Promise<{ id: string }> }
             <h3 className="text-lg font-semibold mb-4">Sumber Trafik (Referrer)</h3>
             <div className="space-y-4">
               {data.referrers?.length > 0 ? (
-                data.referrers.map((ref: any, idx: number) => (
+                data.referrers.map((ref, idx: number) => (
                   <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                     <span className="text-sm font-medium truncate max-w-[200px]">{ref.referrer || "Langsung (Direct)"}</span>
                     <span className="text-sm font-bold bg-white px-2 py-1 rounded shadow-sm border">{ref._count.id} klik</span>

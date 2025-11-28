@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+type LogItem = {
+  linkId: string;
+  device: string;
+  browser: string;
+  os: string;
+  referrer: string;
+  country: string;
+  city: string;
+  createdAt: Date;
+}
 
 export async function GET(req: Request) {
   const isDev = process.env.NODE_ENV === "development";
@@ -11,7 +21,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Ambil data dari Redis. Tipe kembalian bisa string[] atau object[] tergantung Upstash
     const logs: any[] | null = await redis.lpop("analytics:queue", 1000);
 
     if (!logs || logs.length === 0) {
@@ -19,8 +28,6 @@ export async function GET(req: Request) {
     }
 
     const dataToInsert = logs.map((log) => {
-      // PERBAIKAN UTAMA: Cek tipe data dulu
-      // Jika log sudah object, pakai langsung. Jika string, baru di-parse.
       const parsed = typeof log === 'string' ? JSON.parse(log) : log;
 
       return {
@@ -34,14 +41,10 @@ export async function GET(req: Request) {
         createdAt: new Date(parsed.createdAt), 
       };
     });
-
-    // Simpan ke LinkClicks
     await prisma.linkClicks.createMany({
       data: dataToInsert,
     });
-
-    // Update Counter Link
-    const clicksPerLink = dataToInsert.reduce((acc: any, curr: any) => {
+    const clicksPerLink = dataToInsert.reduce((acc: Record<string, number>, curr: LogItem) => {
       acc[curr.linkId] = (acc[curr.linkId] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
