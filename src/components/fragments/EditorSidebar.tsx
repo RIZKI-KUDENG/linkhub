@@ -1,19 +1,15 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
-  Upload,
   Link as LinkIcon,
-  Wand2,
-  LayoutList,
-  Share2,
-  PlayCircle,
-  Heart,
   Lock,
   ShieldAlert,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import ThumbnailSection from "./ThumbnailSection";
+import LinkTypeSelector from "./LinkTypeSelector";
+import { toast } from "sonner";
 
 type LinkForm = {
   url: string;
@@ -49,8 +45,7 @@ export default function EditorSidebar({
     password: "",
   });
   const [isFetchingMeta, setIsFetchingMeta] = useState(false);
-  const [activeTab, setActiveTab] = useState<"scrape" | "custom">("scrape"); // Tab state
-  const fileInputRef = useRef<HTMLInputElement>(null);
+// Tab state
 
   useEffect(() => {
     async function load() {
@@ -65,7 +60,6 @@ export default function EditorSidebar({
           isSensitive: false,
           password: "",
         });
-        setActiveTab("scrape"); // Default tab
         return;
       }
       setLoading(true);
@@ -96,6 +90,7 @@ export default function EditorSidebar({
   async function fetchMetadata() {
     if (!form.url) return;
     setIsFetchingMeta(true);
+    const toastId = toast.loading("Mengambil metadata...");
     try {
       const res = await fetch("/api/scrape", {
         method: "POST",
@@ -109,34 +104,20 @@ export default function EditorSidebar({
         description: meta.description ?? f.description,
         imageUrl: meta.image ?? f.imageUrl,
       }));
+      toast.success("Metadata berhasil diambil!", { id: toastId });
     } catch (err) {
       console.error(err);
-      alert("Gagal mengambil metadata. Coba masukkan manual.");
+      toast.error("Gagal mengambil metadata. Coba manual.", { id: toastId });
     } finally {
       setIsFetchingMeta(false);
     }
   }
 
   // Fungsi Handle Upload Gambar (Base64)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validasi ukuran (Maks 500KB agar database tidak berat)
-    if (file.size > 500 * 1024) {
-      alert("Ukuran gambar terlalu besar! Maksimal 500KB.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm((f) => ({ ...f, imageUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-  };
 
   async function handleSave() {
     setLoading(true);
+    const toastId = toast.loading("Menyimpan...");
     try {
       const method = editingId ? "PATCH" : "POST";
       const url = editingId ? `/api/link/${editingId}` : "/api/link";
@@ -148,16 +129,15 @@ export default function EditorSidebar({
       });
 
       if (!res.ok) throw new Error("Gagal menyimpan");
-
+      toast.success(editingId ? "Link berhasil diperbarui!" : "Link berhasil dibuat!", { id: toastId });
       onSaved();
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat menyimpan.");
+      toast.error("Terjadi kesalahan saat menyimpan.", { id: toastId });
     } finally {
       setLoading(false);
     }
   }
-  type LinkType = LinkForm["type"];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end isolate">
@@ -183,43 +163,11 @@ export default function EditorSidebar({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">
-              Tipe Konten
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: "CLASSIC", label: "Tautan", icon: LayoutList },
-                { id: "SOCIAL", label: "Sosial", icon: Share2 },
-                { id: "EMBED", label: "Embed", icon: PlayCircle },
-                { id: "SUPPORT", label: "Support", icon: Heart },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() =>
-                    setForm((f) => ({ ...f, type: item.id as LinkType }))
-                  }
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 p-3 rounded-lg border transition-all",
-                    form.type === item.id
-                      ? "bg-blue-50 border-blue-500 text-blue-700"
-                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                  )}
-                >
-                  <item.icon size={20} />
-                  <span className="text-xs font-medium">{item.label}</span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {form.type === "SOCIAL" &&
-                "Akan muncul sebagai ikon kecil di footer profil."}
-              {form.type === "EMBED" &&
-                "Video YouTube atau Spotify akan diputar langsung di halaman."}
-              {form.type === "SUPPORT" &&
-                "Tombol khusus untuk Saweria, Trakteer, atau PayPal."}
-            </p>
-          </div>
+          {/* 1. Komponen Selector Tipe */}
+          <LinkTypeSelector 
+            currentType={form.type} 
+            onChange={(type) => setForm(f => ({ ...f, type }))} 
+          />
           {/* URL Input */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-700">
@@ -290,98 +238,13 @@ export default function EditorSidebar({
           {/* -------------------------- */}
 
           {/* Thumbnail Section (Tabs) */}
-          <div className="space-y-3 border rounded-xl p-4 bg-slate-50/50">
-            <label className="block text-sm font-medium text-slate-700">
-              Thumbnail Link
-            </label>
-
-            {/* Tab Switcher */}
-            <div className="flex p-1 bg-slate-200 rounded-lg">
-              <button
-                onClick={() => setActiveTab("scrape")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all",
-                  activeTab === "scrape"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Wand2 size={14} /> Otomatis (Scrape)
-              </button>
-              <button
-                onClick={() => setActiveTab("custom")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all",
-                  activeTab === "custom"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Upload size={14} /> Upload Custom
-              </button>
-            </div>
-
-            {/* Content per Tab */}
-            {activeTab === "scrape" ? (
-              <div className="space-y-3">
-                <p className="text-xs text-slate-500">
-                  Ambil gambar & judul otomatis dari URL website.
-                </p>
-                <button
-                  onClick={fetchMetadata}
-                  disabled={!form.url || isFetchingMeta}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  {isFetchingMeta ? (
-                    <span className="animate-pulse">Sedang mengambil...</span>
-                  ) : (
-                    <>
-                      {" "}
-                      <Wand2 size={16} /> Ambil Metadata{" "}
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-xs text-slate-500">
-                  Upload gambar dari perangkatmu (Maks 500KB).
-                </p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm text-slate-700 font-medium"
-                >
-                  <Upload size={16} /> Pilih Gambar
-                </button>
-              </div>
-            )}
-
-            {/* Preview Image */}
-            {form.imageUrl && (
-              <div className="relative mt-3 w-full h-32 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={form.imageUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
-                  className="absolute top-2 right-2 p-1 bg-white/80 hover:bg-white text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                  title="Hapus gambar"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-          </div>
+          <ThumbnailSection 
+            imageUrl={form.imageUrl}
+            url={form.url}
+            onImageChange={(img) => setForm(f => ({...f, imageUrl: img}))}
+            onFetchMetadata={fetchMetadata}
+            isFetching={isFetchingMeta}
+          />
 
           {/* Judul & Deskripsi */}
           <div className="space-y-4">
