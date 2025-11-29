@@ -3,12 +3,64 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import MasonryClient from "@/components/fragments/MasonryClient";
 import { Metadata } from "next";
-import { ThemeKey, themes } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { unstable_cache } from "next/cache";
 import PublicLinkItem from "@/components/fragments/PublicLinkTheme";
+import { ThemeKey, themes } from "@/lib/theme";
 
-// --- CACHED DATA FETCHING ---
+type UserProfile = {
+  theme?: string | null;
+  customBgColor?: string | null;
+  customAccentColor?: string | null;
+  customFont?: string | null;
+  customBgImage?: string | null;
+}
+
+function getProfileStyles(user: UserProfile) {
+  const isCustom = user.theme === "custom";
+  const standardTheme = themes[user.theme as ThemeKey] || themes.default;
+
+  if (!isCustom) {
+    return {
+      isCustom: false,
+      standardTheme,
+      containerStyle: {},
+      cardStyle: {},
+      textClass: standardTheme.text,
+      bgClass: standardTheme.bg,
+    };
+  }
+
+  // Logic Custom Theme
+  const safeBgColor = user.customBgColor || "#ffffff";
+  const safeAccentColor = user.customAccentColor || "#000000";
+  const safeFont = user.customFont || "inherit";
+
+  return {
+    isCustom: true,
+    standardTheme, // Tetap dikembalikan untuk fallback
+    containerStyle: {
+      backgroundColor: safeBgColor,
+      backgroundImage: user.customBgImage ? `url(${user.customBgImage})` : undefined,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+      fontFamily: safeFont,
+      color: safeAccentColor,
+    },
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.85)",
+      backdropFilter: "blur(8px)",
+      border: `1px solid ${safeAccentColor}20`,
+      color: safeAccentColor,
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    },
+    textClass: "", // Custom theme mengatur warna text lewat container style
+    bgClass: "",
+  };
+}
+
+// --- 2. CACHED DATA FETCHING ---
 const getUserProfile = unstable_cache(
   async (username: string) => {
     return await prisma.user.findUnique({
@@ -26,6 +78,7 @@ const getUserProfile = unstable_cache(
     tags: ["user-profile"],
   }
 );
+
 export async function generateMetadata({
   params,
 }: {
@@ -41,7 +94,6 @@ export async function generateMetadata({
     };
   }
 
-  // Gunakan Custom SEO jika ada
   const pageTitle = user.customTitle || `@${user.username} · LinkHub`;
   const pageDescription =
     user.customDescription ||
@@ -68,7 +120,7 @@ export async function generateMetadata({
   };
 }
 
-// --- PAGE COMPONENT ---
+// --- 3. PAGE COMPONENT (REFACTORED) ---
 export default async function PublicPage({
   params,
 }: {
@@ -81,66 +133,19 @@ export default async function PublicPage({
     notFound();
   }
 
-
-  // --- LOGIKA TEMA (CUSTOM VS STANDARD) ---
-  const isCustom = user.theme === "custom";
-  // Ambil tema standar sebagai fallback atau jika tidak custom
-  const standardTheme = themes[user.theme as ThemeKey] || themes.default;
+  // 1. Ekstraksi Logic Style (Satu baris ini menggantikan logic yang berantakan sebelumnya)
+  const { isCustom, standardTheme, containerStyle, cardStyle, textClass, bgClass } = getProfileStyles(user);
 
   const socialLinks = user.links.filter((l) => l.type === "SOCIAL");
   const contentLinks = user.links.filter((l) => l.type !== "SOCIAL");
-
-  // SAFE VALUES: Menyiapkan nilai default string agar tidak null
-  const safeBgColor = user.customBgColor || "#ffffff";
-  const safeAccentColor = user.customAccentColor || "#000000";
-  const safeFont = user.customFont || "inherit";
-
-  // 1. Style Container Utama (Background & Font)
-  const containerStyle: React.CSSProperties = isCustom
-    ? {
-        backgroundColor: safeBgColor,
-        backgroundImage: user.customBgImage
-          ? `url(${user.customBgImage})`
-          : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed", // Efek parallax sederhana
-        fontFamily: safeFont,
-        color: safeAccentColor,
-      }
-    : {};
-
-  // 2. Style Kartu Link
-  const cardStyle: React.CSSProperties = isCustom
-    ? {
-        backgroundColor: "rgba(255, 255, 255, 0.85)", // Sedikit transparan agar BG terlihat
-        backdropFilter: "blur(8px)", // Efek blur (glassmorphism)
-        border: `1px solid ${safeAccentColor}20`, // Border tipis transparan (menggunakan safeAccentColor)
-        color: safeAccentColor, // Warna teks mengikuti accent (Wajib string, tidak boleh null)
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-      }
-    : {};
-  const supportButtonStyle: React.CSSProperties = isCustom
-    ? {
-        backgroundColor: safeAccentColor, // Warna solid (kebalikan dari card biasa)
-        color: safeBgColor, // Teks kontras
-        border: "none",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-      }
-    : {};
-
-  // 3. Style Teks (Header, Bio, dll)
-  // Jika custom, warna teks diatur di containerStyle (inherited).
-  // Jika standard, gunakan class dari theme.ts.
-  const textClass = !isCustom ? standardTheme.text : "";
 
   return (
     <div
       className={cn(
         "min-h-screen relative p-6 transition-colors duration-300 flex flex-col",
-        !isCustom && standardTheme.bg // Gunakan class BG standard HANYA jika TIDAK custom
+        bgClass // Class BG dari tema standar
       )}
-      style={containerStyle} // Terapkan inline style custom
+      style={containerStyle} // Inline style untuk tema custom
     >
       <div className="max-w-2xl mx-auto mt-10 w-full flex-1">
         {/* --- PROFILE HEADER --- */}
@@ -164,7 +169,7 @@ export default async function PublicPage({
               <div
                 className={cn(
                   "w-full h-full rounded-full flex items-center justify-center text-3xl font-bold border-4 border-white/20",
-                  !isCustom && [standardTheme.card, standardTheme.text] //
+                  !isCustom && [standardTheme.card, standardTheme.text]
                 )}
                 style={isCustom ? cardStyle : {}}
               >
