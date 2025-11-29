@@ -90,11 +90,7 @@ export default function DashboardPage() {
     }
   }
 
-  const handleRedirect = () => {
-  if (session && session.user) {
-    redirect(`/u/${session.user.username}`);
-  }
-};
+
 const LinkCardSkeleton = () => (
     <div className="flex items-center gap-4 bg-white shadow rounded p-3 animate-pulse">
       {/* Drag Handle & Image */}
@@ -157,7 +153,7 @@ const LinkCardSkeleton = () => (
             {/* Tombol Lainnya */}
             <button
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-              onClick={handleRedirect}
+              onClick={() => redirect(`/u/${session.user.username}`)}
             >
               Profile
             </button>

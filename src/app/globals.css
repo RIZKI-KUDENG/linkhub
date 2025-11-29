@@ -124,3 +124,6 @@
   padding: 0;
   background-clip: padding-box;
 }
+.font-poppins {
+  font-family: var(--font-poppins), sans-serif;
+}
