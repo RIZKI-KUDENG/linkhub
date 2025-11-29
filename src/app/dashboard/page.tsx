@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import LinkCard from "@/components/fragments/LinkCard";
 import EditorSidebar from "@/components/fragments/EditorSidebar";
-import ShareModal from "@/components/fragments/ShareModal"; 
-import { QrCode } from "lucide-react"; 
+import ShareModal from "@/components/fragments/ShareModal";
+import { QrCode } from "lucide-react";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import useLinks from "@/hooks/useLinks";
 import { redirect } from "next/navigation";
@@ -28,12 +30,12 @@ export default function DashboardPage() {
   const { links, setLinks, loading, refetch } = useLinks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   // 2. State untuk Modal Share
-  const [isShareOpen, setIsShareOpen] = useState(false); 
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
-  
+
   // ... useEffect & Session Check (Tidak berubah) ...
   useEffect(() => {
     if (links) {
@@ -43,7 +45,7 @@ export default function DashboardPage() {
   }, [loading]);
 
   if (!session) {
-    return (/* ... Login Screen ... */ <div className="min-h-screen flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold mb-4">Masuk dulu sebelum mengelola Link</h2><button className="px-4 py-2 rounded bg-blue-600 text-white" onClick={() => signIn("google")}>Login dengan Google</button></div></div>);
+    redirect("/login");
   }
 
   // ... Functions (openEditor, handleDragEnd, dll) ...
@@ -55,34 +57,73 @@ export default function DashboardPage() {
     setEditingId(null);
     setIsSidebarOpen(false);
   }
-  async function handleDragEnd(event: DragEndEvent) { /* ... logika drag and drop ... */ 
+  async function handleDragEnd(event: DragEndEvent) {
+    /* ... logika drag and drop ... */
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = links.findIndex((l) => l.id === active.id);
     const newIndex = links.findIndex((l) => l.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
+    const previousLinks = [...links];
     const newArray = arrayMove(links, oldIndex, newIndex).map((item, idx) => ({
       ...item,
       sortOrder: idx,
     }));
     setLinks(newArray);
     try {
-      await fetch("/api/link/reorder", {
+      const res = await fetch("/api/link/reorder", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orders: newArray.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
         }),
       });
+      if (!res.ok) {
+        throw new Error("Gagal menyimpan ke server");
+      }
+
+      toast.success("Urutan disimpan");
     } catch (err) {
       console.error("Reorder failed", err);
-      refetch();
+      setLinks(previousLinks);
+      toast.error("Gagal menyimpan urutan link, perubahan dibatalkan.");
     }
   }
 
   const handleRedirect = () => {
+  if (session && session.user) {
     redirect(`/u/${session.user.username}`);
-  };
+  }
+};
+const LinkCardSkeleton = () => (
+    <div className="flex items-center gap-4 bg-white shadow rounded p-3 animate-pulse">
+      {/* Drag Handle & Image */}
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-6 rounded" />
+        <Skeleton className="w-20 h-20 rounded" />
+      </div>
+      
+      {/* Content */}
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-2 w-full">
+            <Skeleton className="h-5 w-3/4" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-8 rounded" />
+            <Skeleton className="h-8 w-8 rounded" />
+            <Skeleton className="h-8 w-8 rounded" />
+          </div>
+        </div>
+        <Skeleton className="h-3 w-1/3 mt-2" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen p-6 bg-slate-50 text-slate-900">
@@ -112,7 +153,7 @@ export default function DashboardPage() {
             >
               + Tambah Link
             </button>
-            
+
             {/* Tombol Lainnya */}
             <button
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
@@ -120,13 +161,13 @@ export default function DashboardPage() {
             >
               Profile
             </button>
-             <a
+            <a
               href="/dashboard/settings"
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
             >
               Settings
             </a>
-             <button
+            <button
               className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded transition-colors"
               onClick={() => signOut({ callbackUrl: "/login" })}
             >
@@ -137,8 +178,12 @@ export default function DashboardPage() {
 
         <main>
           {/* ... Main Content (List Links / DndContext) ... */}
-           {loading ? (
-            <div className="text-center py-10">Loading...</div>
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4">
+              {[1, 2, 3].map((i) => (
+                <LinkCardSkeleton key={i} />
+              ))}
+            </div>
           ) : links.length === 0 ? (
             <div className="text-center py-10">
               <p className="mb-4">Kamu belum punya link apa pun.</p>
@@ -198,10 +243,10 @@ export default function DashboardPage() {
 
       {/* 4. Pasang Component Modal */}
       {session?.user?.username && (
-        <ShareModal 
-            username={session.user.username} 
-            open={isShareOpen} 
-            onOpenChange={setIsShareOpen} 
+        <ShareModal
+          username={session.user.username}
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
         />
       )}
     </div>
