@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import LoadingSkeleton from "./loading"; 
 import {
   BarChart,
   Bar,
@@ -15,7 +16,6 @@ import {
 } from "recharts";
 import { ArrowLeft, MousePointer2, Globe, Smartphone } from "lucide-react";
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 type AnalyticsData = {
@@ -40,9 +40,12 @@ export default function AnalyticsPage(props: {
 }) {
   const params = use(props.params);
   const [data, setData] = useState<AnalyticsData | null>(null);
+  // Tambahkan state loading
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
+      setIsLoading(true); // Mulai loading
       try {
         const res = await fetch(`/api/analytics/${params.id}`);
         if (!res.ok) throw new Error("Gagal mengambil data");
@@ -50,15 +53,20 @@ export default function AnalyticsPage(props: {
         setData(json);
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoading(false); 
       }
     }
     fetchData();
   }, [params.id]);
 
-  if (!data)
-    return <div className="p-8 text-center">Data tidak ditemukan.</div>;
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
-  // Format data untuk Recharts
+  if (!data)
+    return <div className="p-8 text-center text-white">Data tidak ditemukan.</div>;
+
   const chartData = Object.entries(data.chartData || {}).map(
     ([date, clicks]) => ({
       date,

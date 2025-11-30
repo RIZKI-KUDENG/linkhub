@@ -257,7 +257,7 @@ export default async function PublicPage({
           textClass
         )}
       >
-        Powered by LinkHub
+        Powered by Inspage
       </div>
     </div>
   );

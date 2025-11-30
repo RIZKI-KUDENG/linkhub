@@ -210,7 +210,7 @@ export default function EditorSidebar({
       </div>
 
       {/* SECURITY SECTION */}
-      <div className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/[0.03]">
+      <div className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/3">
         <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
           Keamanan & Privasi
         </h3>

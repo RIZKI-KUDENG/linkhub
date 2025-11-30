@@ -11,12 +11,13 @@ export default function MasonryClient({
     default: 3,
     1200: 3,
     900: 2,
-    600: 1,
+    600: 2, 
+    400: 2
   };
   return (
     <Masonry
       breakpointCols={breakpoints}
-      className="flex gap-4"
+      className="flex gap-4 w-full"
       columnClassName="masonry-column"
     >
       {children}

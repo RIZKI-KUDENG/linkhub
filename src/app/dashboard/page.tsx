@@ -7,7 +7,6 @@ import EditorSidebar from "@/components/fragments/EditorSidebar";
 import ShareModal from "@/components/fragments/ShareModal";
 import { QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import useLinks from "@/hooks/useLinks";
 import { redirect } from "next/navigation";
@@ -26,8 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 
 export default function DashboardPage() {
-  // 1. Ambil status juga dari useSession
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   
   const { links, setLinks, loading, refetch } = useLinks();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -45,10 +43,6 @@ export default function DashboardPage() {
 
 
 
-  // Jika sudah selesai loading dan tetap tidak ada session, baru redirect
-  if (status === "unauthenticated" || !session) {
-    redirect("/login");
-  }
 
   // ... Functions (openEditor, handleDragEnd, dll) - Bagian bawah tetap sama ...
   function openEditor(id?: string) {
@@ -120,7 +114,7 @@ export default function DashboardPage() {
 
     <button
       className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
-      onClick={() => redirect(`/u/${session.user.username}`)}
+      onClick={() => redirect(`/u/${session?.user.username}`)}
     >
       Profile
     </button>
