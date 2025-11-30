@@ -5,12 +5,8 @@ import LoginButton from "./LoginButton";
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions);
-  if(session?.user){
-    if(session.user.username){
-      redirect(`/u/${session.user.username}`)
-    }else{
-      redirect('/dashboard')
-    }
+  if (session?.user) {
+    redirect('/dashboard'); 
   }
 
   return (

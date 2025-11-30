@@ -20,6 +20,7 @@ export default async function Home() {
           width={50}
           height={50}
           alt="Logo"
+          className=" rounded-full"
         />
         <span className="text-xl font-bold font-poppins text-slate-900">
           Inspage

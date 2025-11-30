@@ -1,3 +1,7 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import Link from "next/link";
+import { Edit3 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -7,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { unstable_cache } from "next/cache";
 import PublicLinkItem from "@/components/fragments/PublicLinkTheme";
 import { ThemeKey, themes } from "@/lib/theme";
+
 
 type UserProfile = {
   theme?: string | null;
@@ -86,6 +91,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params;
   const user = await getUserProfile(username);
+ 
 
   if (!user) {
     return {
@@ -128,12 +134,14 @@ export default async function PublicPage({
 }) {
   const { username } = await params;
   const user = await getUserProfile(username);
+   const session = await getServerSession(authOptions);
+  const isOwner = session?.user?.username === username;
 
   if (!user) {
     notFound();
   }
 
-  // 1. Ekstraksi Logic Style (Satu baris ini menggantikan logic yang berantakan sebelumnya)
+
   const { isCustom, standardTheme, containerStyle, cardStyle, textClass, bgClass } = getProfileStyles(user);
 
   const socialLinks = user.links.filter((l) => l.type === "SOCIAL");
@@ -147,6 +155,16 @@ export default async function PublicPage({
       )}
       style={containerStyle} // Inline style untuk tema custom
     >
+      {/* --- TAMBAHAN UI: Tombol Floating Edit (Hanya untuk Owner) --- */}
+      {isOwner && (
+        <Link 
+          href="/dashboard" 
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-black text-white rounded-full shadow-lg hover:scale-105 transition-transform font-medium text-sm border border-white/20 backdrop-blur-md"
+        >
+          <Edit3 size={16} />
+          <span>Edit Profil</span>
+        </Link>
+      )}
       <div className="max-w-2xl mx-auto mt-10 w-full flex-1">
         {/* --- PROFILE HEADER --- */}
         <div className="text-center mb-10">

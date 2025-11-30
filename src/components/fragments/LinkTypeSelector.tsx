@@ -20,32 +20,39 @@ export default function LinkTypeSelector({ currentType, onChange }: LinkTypeSele
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-slate-700">
-        Tipe Konten
-      </label>
-      <div className="grid grid-cols-4 gap-2">
-        {types.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onChange(item.id as LinkType)}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all",
-              currentType === item.id
-                ? "bg-blue-50 border-blue-500 text-blue-700"
-                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-            )}
-            type="button" // Penting agar tidak submit form
-          >
-            <item.icon size={18} />
-            <span className="text-[10px] font-medium">{item.label}</span>
-          </button>
-        ))}
-      </div>
-      <p className="text-xs text-slate-500 mt-1">
-        {currentType === "SOCIAL" && "Ikon kecil di footer profil."}
-        {currentType === "EMBED" && "Video YouTube/Spotify diputar langsung."}
-        {currentType === "SUPPORT" && "Tombol donasi/dukungan."}
-      </p>
-    </div>
+  <label className="block text-sm font-medium text-white/80">
+    Tipe Konten
+  </label>
+
+  <div className="grid grid-cols-4 gap-2">
+    {types.map((item) => (
+      <button
+        key={item.id}
+        onClick={() => onChange(item.id as LinkType)}
+        type="button"
+        className={cn(
+          `
+          flex flex-col items-center justify-center gap-1 p-2
+          rounded-lg border text-xs font-medium
+          transition-all select-none
+          `,
+          currentType === item.id
+            ? "bg-[#F5D547] text-black border-[#F5D547] shadow-sm"
+            : "bg-black/20 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+        )}
+      >
+        <item.icon size={18} />
+        <span className="text-[10px]">{item.label}</span>
+      </button>
+    ))}
+  </div>
+
+  <p className="text-xs text-white/50 mt-1">
+    {currentType === "SOCIAL" && "Ikon kecil di footer profil."}
+    {currentType === "EMBED" && "Video YouTube/Spotify diputar langsung."}
+    {currentType === "SUPPORT" && "Tombol donasi/dukungan."}
+  </p>
+</div>
+
   );
 }

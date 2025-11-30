@@ -141,174 +141,219 @@ export default function EditorSidebar({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end isolate">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+  {/* Backdrop */}
+  <div
+    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+    onClick={onClose}
+  />
+
+  <aside
+    className="
+      relative w-full max-w-md h-full
+      bg-[#111] text-white
+      shadow-[0_0_40px_rgba(0,0,0,0.6)]
+      flex flex-col
+      animate-in slide-in-from-right duration-300
+      border-l border-white/10
+    "
+  >
+    {/* Header */}
+    <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <h2 className="text-lg font-semibold">
+        {editingId ? "Edit Link" : "Tambah Link Baru"}
+      </h2>
+
+      <button
         onClick={onClose}
+        className="p-2 rounded-full text-white/50 hover:bg-white/10 hover:text-white transition"
+      >
+        <X size={20} />
+      </button>
+    </div>
+
+    {/* Scrollable Content */}
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      {/* Link Type Selector */}
+      <LinkTypeSelector
+        currentType={form.type}
+        onChange={(type) => setForm((f) => ({ ...f, type }))}
       />
 
-      <aside className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-slate-800">
-            {editingId ? "Edit Link" : "Tambah Link Baru"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      {/* URL Input */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-white/80">
+          Link URL <span className="text-red-400">*</span>
+        </label>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* 1. Komponen Selector Tipe */}
-          <LinkTypeSelector 
-            currentType={form.type} 
-            onChange={(type) => setForm(f => ({ ...f, type }))} 
+        <div className="relative">
+          <LinkIcon
+            className="absolute left-3 top-2.5 text-white/40"
+            size={16}
           />
-          {/* URL Input */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">
-              Link URL <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <LinkIcon
-                className="absolute left-3 top-2.5 text-slate-400"
-                size={16}
-              />
-              <input
-                value={form.url}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, url: e.target.value }))
-                }
-                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                placeholder="https://website-kamu.com"
-                autoFocus
-              />
-            </div>
+          <input
+            value={form.url}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, url: e.target.value }))
+            }
+            className="
+              w-full pl-9 pr-3 py-2
+              bg-black/20 border border-white/10
+              rounded-lg text-sm
+              focus:ring-2 focus:ring-[#F5D547] focus:border-transparent
+              placeholder:text-white/30
+              transition-all outline-none
+            "
+            placeholder="https://website-kamu.com"
+            autoFocus
+          />
+        </div>
+      </div>
+
+      {/* SECURITY SECTION */}
+      <div className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/[0.03]">
+        <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+          Keamanan & Privasi
+        </h3>
+
+        {/* Sensitive Toggle */}
+        <label className="flex items-center justify-between cursor-pointer">
+          <div className="flex items-center gap-2">
+            <ShieldAlert size={16} className="text-yellow-400" />
+            <span className="text-sm text-white/80">Konten Sensitif (18+)</span>
           </div>
-          {/* --- BAGIAN KEAMANAN (BARU) --- */}
-          <div className="space-y-3 border rounded-xl p-4 bg-slate-50/50">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Keamanan & Privasi
-            </h3>
+          <input
+            type="checkbox"
+            checked={form.isSensitive}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, isSensitive: e.target.checked }))
+            }
+            className="w-4 h-4 rounded border-white/20 bg-black focus:ring-[#F5D547]"
+          />
+        </label>
 
-            {/* Sensitive Toggle */}
-            <label className="flex items-center justify-between cursor-pointer">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={16} className="text-orange-500" />
-                <span className="text-sm font-medium text-slate-700">
-                  Konten Sensitif (18+)
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                checked={form.isSensitive}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, isSensitive: e.target.checked }))
-                }
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-            </label>
-
-            {/* Password Input */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Lock size={16} className="text-slate-500" />
-                <span className="text-sm font-medium text-slate-700">
-                  Password (Opsional)
-                </span>
-              </div>
-              <input
-                type="text"
-                value={form.password || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, password: e.target.value }))
-                }
-                placeholder="Biarkan kosong jika publik"
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-              />
-              <p className="text-[10px] text-slate-400">
-                User harus memasukkan password ini untuk membuka link.
-              </p>
-            </div>
+        {/* Password Input */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Lock size={16} className="text-white/40" />
+            <span className="text-sm text-white/80">Password (Opsional)</span>
           </div>
-          {/* -------------------------- */}
 
-          {/* Thumbnail Section (Tabs) */}
-          <ThumbnailSection 
-            imageUrl={form.imageUrl}
-            url={form.url}
-            onImageChange={(img) => setForm(f => ({...f, imageUrl: img}))}
-            onFetchMetadata={fetchMetadata}
-            isFetching={isFetchingMeta}
+          <input
+            type="text"
+            value={form.password || ""}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, password: e.target.value }))
+            }
+            placeholder="Biarkan kosong jika publik"
+            className="
+              w-full p-2 bg-black/20 border border-white/10
+              rounded-lg text-sm text-white
+              placeholder:text-white/30
+              focus:ring-2 focus:ring-[#F5D547]
+            "
           />
 
-          {/* Judul & Deskripsi */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                Judul Link
-              </label>
-              <input
-                value={form.title}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, title: e.target.value }))
-                }
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
-                placeholder="Contoh: Portfolio Saya"
-              />
-            </div>
+          <p className="text-[10px] text-white/40">
+            User harus memasukkan password ini untuk membuka link.
+          </p>
+        </div>
+      </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                Kategori
-              </label>
-              <input
-                value={form.category}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, category: e.target.value }))
-                }
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
-                placeholder="Contoh: Social Media, Work, dll"
-              />
-            </div>
+      {/* THUMBNAIL SECTION */}
+      <ThumbnailSection
+        imageUrl={form.imageUrl}
+        url={form.url}
+        onImageChange={(img) => setForm((f) => ({ ...f, imageUrl: img }))}
+        onFetchMetadata={fetchMetadata}
+        isFetching={isFetchingMeta}
+      />
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                Deskripsi (Opsional)
-              </label>
-              <textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
-                }
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm h-24 resize-none"
-                placeholder="Tambahkan detail singkat..."
-              />
-            </div>
-          </div>
+      {/* Title, Category, Description */}
+      <div className="space-y-4">
+        {/* Title */}
+        <div className="space-y-2">
+          <label className="block text-sm text-white/80">Judul Link</label>
+          <input
+            value={form.title}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, title: e.target.value }))
+            }
+            className="
+              w-full p-2 bg-black/20 border border-white/10 rounded-lg text-sm
+              placeholder:text-white/30 focus:ring-2 focus:ring-[#F5D547]
+            "
+            placeholder="Contoh: Portfolio Saya"
+          />
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 border-t bg-slate-50 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={loading || !form.url}
-            className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-200"
-          >
-            {loading ? "Menyimpan..." : "Simpan Link"}
-          </button>
+        {/* Category */}
+        <div className="space-y-2">
+          <label className="block text-sm text-white/80">
+            Kategori
+          </label>
+          <input
+            value={form.category}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, category: e.target.value }))
+            }
+            className="
+              w-full p-2 bg-black/20 border border-white/10 rounded-lg text-sm
+              placeholder:text-white/30 focus:ring-2 focus:ring-[#F5D547]
+            "
+            placeholder="Contoh: Social Media, Work, dll"
+          />
         </div>
-      </aside>
+
+        {/* Description */}
+        <div className="space-y-2">
+          <label className="block text-sm text-white/80">
+            Deskripsi (Opsional)
+          </label>
+          <textarea
+            value={form.description}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, description: e.target.value }))
+            }
+            className="
+              w-full p-2 bg-black/20 border border-white/10 rounded-lg text-sm
+              placeholder:text-white/30 focus:ring-2 focus:ring-[#F5D547]
+              h-24 resize-none
+            "
+            placeholder="Tambahkan detail singkat..."
+          />
+        </div>
+      </div>
     </div>
+
+    {/* FOOTER */}
+    <div className="p-6 border-t border-white/10 bg-black/30 flex gap-3">
+      <button
+        onClick={onClose}
+        className="
+          flex-1 px-4 py-2.5
+          border border-white/20 text-white/80
+          rounded-lg hover:bg-white/10 transition
+        "
+      >
+        Batal
+      </button>
+
+      <button
+        onClick={handleSave}
+        disabled={loading || !form.url}
+        className="
+          flex-1 px-4 py-2.5
+          bg-[#F5D547] text-black
+          font-semibold rounded-lg
+          hover:bg-[#e6c53f] transition
+          disabled:opacity-40 disabled:cursor-not-allowed
+        "
+      >
+        {loading ? "Menyimpan..." : "Simpan Link"}
+      </button>
+    </div>
+  </aside>
+</div>
+
   );
 }

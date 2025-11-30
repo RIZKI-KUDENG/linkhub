@@ -39,91 +39,120 @@ export default function ThumbnailSection({
   };
 
   return (
-    <div className="space-y-3 border rounded-xl p-4 bg-slate-50/50">
-      <label className="block text-sm font-medium text-slate-700">
-        Thumbnail Link
-      </label>
+    <div className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/3 text-white">
+  <label className="block text-sm font-medium text-white/80">
+    Thumbnail Link
+  </label>
 
-      {/* Tab Switcher */}
-      <div className="flex p-1 bg-slate-200 rounded-lg">
-        <button
-          type="button"
-          onClick={() => setActiveTab("scrape")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all",
-            activeTab === "scrape"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-slate-500"
-          )}
-        >
-          <Wand2 size={14} /> Otomatis
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("custom")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all",
-            activeTab === "custom"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-slate-500"
-          )}
-        >
-          <Upload size={14} /> Upload
-        </button>
-      </div>
+  {/* Tab Switcher */}
+  <div className="flex p-1 bg-black/20 rounded-lg border border-white/10">
+    <button
+      type="button"
+      onClick={() => setActiveTab("scrape")}
+      className={cn(
+        `
+        flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium 
+        rounded-md transition-all
+        `,
+        activeTab === "scrape"
+          ? "bg-[#F5D547] text-black shadow-sm"
+          : "text-white/60 hover:text-white"
+      )}
+    >
+      <Wand2 size={14} /> Otomatis
+    </button>
 
-      {/* Content */}
-      {activeTab === "scrape" ? (
-        <button
-          type="button"
-          onClick={onFetchMetadata}
-          disabled={!url || isFetching}
-          className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 text-sm font-medium"
-        >
-          {isFetching ? (
-            <span className="animate-pulse">Mengambil...</span>
-          ) : (
-            <>
-              <Wand2 size={16} /> Ambil Metadata
-            </>
-          )}
-        </button>
+    <button
+      type="button"
+      onClick={() => setActiveTab("custom")}
+      className={cn(
+        `
+        flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium
+        rounded-md transition-all
+        `,
+        activeTab === "custom"
+          ? "bg-[#F5D547] text-black shadow-sm"
+          : "text-white/60 hover:text-white"
+      )}
+    >
+      <Upload size={14} /> Upload
+    </button>
+  </div>
+
+  {/* Content */}
+  {activeTab === "scrape" ? (
+    <button
+      type="button"
+      onClick={onFetchMetadata}
+      disabled={!url || isFetching}
+      className="
+        w-full flex items-center justify-center gap-2 py-2
+        bg-black/20 border border-white/10
+        rounded-lg text-sm font-medium text-white/80
+        hover:bg-white/10 transition disabled:opacity-40
+      "
+    >
+      {isFetching ? (
+        <span className="animate-pulse text-white/70">Mengambil...</span>
       ) : (
         <>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 text-sm text-slate-700 font-medium"
-          >
-            <Upload size={16} /> Pilih Gambar
-          </button>
+          <Wand2 size={16} /> Ambil Metadata
         </>
       )}
+    </button>
+  ) : (
+    <>
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        className="hidden"
+      />
 
-      {/* Preview */}
-      {imageUrl && (
-        <div className="relative mt-3 w-full h-32 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
-          <img
-            src={imageUrl}
-            alt="Preview"
-            className="w-full h-full object-cover"
-          />
-          <button
-            type="button"
-            onClick={() => onImageChange("")}
-            className="absolute top-2 right-2 p-1 bg-white/80 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="
+          w-full flex items-center justify-center gap-2 py-2
+          bg-black/20 border border-white/10
+          rounded-lg text-sm font-medium text-white/80
+          hover:bg-white/10 transition
+        "
+      >
+        <Upload size={16} /> Pilih Gambar
+      </button>
+    </>
+  )}
+
+  {/* Preview */}
+  {imageUrl && (
+    <div className="
+      relative mt-3 w-full h-32 rounded-lg overflow-hidden 
+      border border-white/10 bg-black/30 group
+    ">
+      <img
+        src={imageUrl}
+        alt="Preview"
+        className="w-full h-full object-cover"
+      />
+
+      <button
+        type="button"
+        onClick={() => onImageChange("")}
+        className="
+          absolute top-2 right-2 p-1
+          bg-black/60 text-white rounded-full
+          opacity-0 group-hover:opacity-100 
+          transition-opacity shadow-md
+          hover:bg-red-500/80 hover:text-white
+        "
+      >
+        <X size={14} />
+      </button>
     </div>
+  )}
+</div>
+
   );
 }

@@ -26,17 +26,16 @@ import {
 } from "@dnd-kit/sortable";
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  // 1. Ambil status juga dari useSession
+  const { data: session, status } = useSession();
+  
   const { links, setLinks, loading, refetch } = useLinks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // 2. State untuk Modal Share
   const [isShareOpen, setIsShareOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
-  // ... useEffect & Session Check (Tidak berubah) ...
   useEffect(() => {
     if (links) {
       const sorted = [...links].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -44,11 +43,14 @@ export default function DashboardPage() {
     }
   }, [loading]);
 
-  if (!session) {
+
+
+  // Jika sudah selesai loading dan tetap tidak ada session, baru redirect
+  if (status === "unauthenticated" || !session) {
     redirect("/login");
   }
 
-  // ... Functions (openEditor, handleDragEnd, dll) ...
+  // ... Functions (openEditor, handleDragEnd, dll) - Bagian bawah tetap sama ...
   function openEditor(id?: string) {
     setEditingId(id ?? null);
     setIsSidebarOpen(true);
@@ -58,7 +60,6 @@ export default function DashboardPage() {
     setIsSidebarOpen(false);
   }
   async function handleDragEnd(event: DragEndEvent) {
-    /* ... logika drag and drop ... */
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = links.findIndex((l) => l.id === active.id);
@@ -90,97 +91,59 @@ export default function DashboardPage() {
     }
   }
 
-
-const LinkCardSkeleton = () => (
-    <div className="flex items-center gap-4 bg-white shadow rounded p-3 animate-pulse">
-      {/* Drag Handle & Image */}
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-8 w-6 rounded" />
-        <Skeleton className="w-20 h-20 rounded" />
-      </div>
-      
-      {/* Content */}
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-2 w-full">
-            <Skeleton className="h-5 w-3/4" />
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-3 w-1/2" />
-              <Skeleton className="h-5 w-16 rounded-full" />
-            </div>
-          </div>
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-8 rounded" />
-            <Skeleton className="h-8 w-8 rounded" />
-            <Skeleton className="h-8 w-8 rounded" />
-          </div>
-        </div>
-        <Skeleton className="h-3 w-1/3 mt-2" />
-      </div>
-    </div>
-  );
+ 
 
   return (
-    <div className="min-h-screen p-6 bg-slate-50 text-slate-900">
+    <div className="min-h-screen p-6 bg-black text-white">
       <div className="max-w-5xl mx-auto">
-        <header className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard LinkHub</h1>
-            <p className="text-sm text-slate-600">
-              Kelola moodboard link kamu — drag & drop untuk susun ulang
-            </p>
-          </div>
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+  <div>
+    <h1 className="text-3xl font-extrabold tracking-tight">Dashboard LinkHub</h1>
+    <p className="text-sm text-gray-400">Kelola moodboard link kamu</p>
+  </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* 3. Tombol QR Code Baru */}
-            <button
-              onClick={() => setIsShareOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded hover:bg-slate-50 transition-colors"
-              title="Tampilkan QR Code"
-            >
-              <QrCode size={18} />
-              <span className="hidden sm:inline">Share</span>
-            </button>
+  <div className="flex items-center gap-3 flex-wrap">
+    <button
+      onClick={() => setIsShareOpen(true)}
+      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#111] border border-white/10 text-white hover:bg-white/5 transition"
+    >
+      <QrCode size={18} />
+      <span className="hidden sm:inline">Share</span>
+    </button>
 
-            <button
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-              onClick={() => openEditor()}
-            >
-              + Tambah Link
-            </button>
+    <button
+      className="px-4 py-2 rounded-lg bg-[#F5D547] text-black font-semibold hover:bg-[#e6c53f] transition"
+      onClick={() => openEditor()}
+    >
+      + Tambah Link
+    </button>
 
-            {/* Tombol Lainnya */}
-            <button
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-              onClick={() => redirect(`/u/${session.user.username}`)}
-            >
-              Profile
-            </button>
-            <a
-              href="/dashboard/settings"
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
-            >
-              Settings
-            </a>
-            <button
-              className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded transition-colors"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
+    <button
+      className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
+      onClick={() => redirect(`/u/${session.user.username}`)}
+    >
+      Profile
+    </button>
+
+    <a
+      href="/dashboard/settings"
+      className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
+    >
+      Settings
+    </a>
+
+    <button
+      className="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+      onClick={() => signOut({ callbackUrl: "/login" })}
+    >
+      Logout
+    </button>
+  </div>
+</header>
+
 
         <main>
-          {/* ... Main Content (List Links / DndContext) ... */}
-          {loading ? (
-            <div className="grid grid-cols-1 gap-4">
-              {[1, 2, 3].map((i) => (
-                <LinkCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : links.length === 0 ? (
+          { links.length === 0 ? (
             <div className="text-center py-10">
               <p className="mb-4">Kamu belum punya link apa pun.</p>
               <button
@@ -237,7 +200,6 @@ const LinkCardSkeleton = () => (
         }}
       />
 
-      {/* 4. Pasang Component Modal */}
       {session?.user?.username && (
         <ShareModal
           username={session.user.username}

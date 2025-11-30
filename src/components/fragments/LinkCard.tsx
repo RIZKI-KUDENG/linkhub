@@ -34,85 +34,96 @@ export default function LinkCard({
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-4 bg-white shadow rounded p-3"
-    >
-      <div className="flex items-center gap-3">
-        <div {...attributes} {...listeners} className="p-2 rounded cursor-grab">
-          <GripVertical size={18} />
-        </div>
+  ref={setNodeRef}
+  style={style}
+  className="
+    flex flex-col sm:flex-row 
+    gap-4 p-4 rounded-2xl
+    bg-[#111] border border-white/10 shadow-sm 
+    hover:bg-[#181818] transition
+    text-white
+  "
+>
+  {/* LEFT – Image & Drag Handle */}
+  <div className="flex items-start gap-3 w-full sm:w-auto">
+    <div {...attributes} {...listeners} className="p-2 rounded cursor-grab text-white/50 hover:text-white transition">
+      <GripVertical size={18} />
+    </div>
 
-        <div className="w-20 h-20 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
-          {link.imageUrl ? (
-            <img
-              src={link.imageUrl}
-              alt={link.title ?? link.url}
-              className="object-cover w-full h-full"
-            />
-          ) : (
-            <div className="text-xs text-slate-500 px-2 text-center">
-              No Image
-            </div>
-          )}
+    <div className="w-20 h-20 bg-black/30 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center">
+      {link.imageUrl ? (
+        <img
+          src={link.imageUrl}
+          alt={link.title ?? link.url}
+          className="object-cover w-full h-full"
+        />
+      ) : (
+        <div className="text-xs text-white/40 px-2 text-center">
+          No Image
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* RIGHT – Text & Actions */}
+  <div className="flex-1 min-w-0">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-semibold truncate max-w-full sm:max-w-md text-white">
+          {link.title ?? link.url}
+        </h3>
+
+        <div className="flex flex-wrap items-center gap-2 mt-1">
+          <p className="text-xs truncate max-w-full sm:max-w-48 text-white/70">
+            {link.description ?? link.url}
+          </p>
+
+          <div className="flex items-center gap-1 text-xs text-black bg-[#F5D547] px-2 py-0.5 rounded-full shadow">
+            <BarChart2 size={12} />
+            <span>{link.clicks} klik</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold truncate max-w-md">
-              {link.title ?? link.url}
-            </h3>
-            {/* <p className="text-xs text-slate-500 truncate max-w-md">
-              {link.description ?? link.url}
-            </p> */}
-            <div className="flex items-center gap-4 mt-1">
-              <p className="text-xs truncate max-w-48">
-                {link.description ?? link.url}
-              </p>
-
-              <div className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                <BarChart2 size={12} />
-                <span>{link.clicks} klik</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <Link
-              href={`/dashboard/links/${link.id}/analytics`}
-              className="p-2 rounded hover:bg-slate-100 text-slate-600"
-              title="Lihat Analitik"
-            >
-              <BarChart2 size={16} />
-            </Link>
-            <button
-              onClick={onEdit}
-              className="p-2 rounded hover:bg-slate-100"
-              title="Edit"
-            >
-              <Edit2 size={16} />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-2 rounded hover:bg-slate-100 text-red-600"
-              title="Delete"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        </div>
-
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-blue-600 break-all"
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-2 items-center">
+        <Link
+          href={`/dashboard/links/${link.id}/analytics`}
+          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-white"
+          title="Lihat Analitik"
         >
-          {link.url}
-        </a>
+          <BarChart2 size={16} />
+        </Link>
+
+        <button
+          onClick={onEdit}
+          className="p-2 rounded-lg bg-[#F5D547] text-black hover:bg-[#e6c53f] transition"
+          title="Edit"
+        >
+          <Edit2 size={16} />
+        </button>
+
+        <button
+          onClick={onDelete}
+          className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition"
+          title="Delete"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
     </div>
+
+    {/* URL */}
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noreferrer"
+      className="block text-xs text-[#F5D547] mt-2 break-all hover:underline"
+    >
+      {link.url}
+    </a>
+  </div>
+</div>
+
   );
 }

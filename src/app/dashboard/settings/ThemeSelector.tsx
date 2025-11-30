@@ -35,7 +35,7 @@ export default function ThemeSelector({ register, setValue, watch }: ThemeSelect
 
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-3">
+      <label className="block text-sm font-medium text-white/80 mb-3">
         Pilih Tema Tampilan
       </label>
       <div className="grid grid-cols-2 gap-3 mb-4">
