@@ -2,9 +2,36 @@ import GoogleProvider from "next-auth/providers/google";
 import { NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
+import { Adapter, AdapterUser } from "next-auth/adapters"; // Import Adapter type
+
+// 1. Definisikan adapter secara terpisah agar bisa di-extend
+const prismaAdapter = PrismaAdapter(prisma);
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // 2. Override fungsi createUser
+  adapter: {
+    ...prismaAdapter,
+    createUser: async (data: AdapterUser) => {
+      // Logic generate username dipindah ke sini
+      const base = data.name?.toLowerCase().replace(/\s+/g, "") ?? "user";
+      let username = base;
+      let counter = 1;
+
+      // Cek ketersediaan username
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${base}${counter++}`;
+      }
+
+      // Tambahkan username ke data yang akan dibuat
+      return prisma.user.create({
+        data: {
+          ...data,
+          username,
+          theme: data.theme ?? "default",
+        },
+      });
+    },
+  } as Adapter,
 
   providers: [
     GoogleProvider({
@@ -18,33 +45,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    // Generate username
-    async signIn({ user }) {
-      if (!user) return true;
-      const existing = await prisma.user.findUnique({
-        where: { id: user.id },
-      });
+    // 3. HAPUS callback signIn karena logika sudah dipindah ke adapter
+    // (Callback signIn dihapus atau biarkan default jika tidak ada logic lain)
 
-      if (existing?.username) return true;
-
-      // generate username unik
-      const base = user.name?.toLowerCase().replace(/\s+/g, "") ?? "user";
-      let username = base;
-      let counter = 1;
-
-      while (await prisma.user.findFirst({ where: { username } })) {
-        username = `${base}${counter++}`;
-      }
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { username },
-      });
-
-      return true;
-    },
-
-    // SIMPAN username & id ke JWT
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
@@ -59,7 +62,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // SIMPAN username ke session
     async session({ session, token }) {
       session.user.id = token.id as string;
       session.user.username = token.username ?? null;
