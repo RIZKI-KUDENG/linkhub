@@ -113,7 +113,6 @@ export default function EditorSidebar({
     }
   }
 
-  // Fungsi Handle Upload Gambar (Base64)
 
   async function handleSave() {
     setLoading(true);

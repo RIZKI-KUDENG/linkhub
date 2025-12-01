@@ -4,7 +4,7 @@ export async function uploadToCloudinary(file: File) {
   // Ganti dengan Upload Preset Anda dari dashboard Cloudinary
   formData.append("upload_preset", "inspage"); 
   // Ganti dengan Cloud Name Anda
-  const cloudName = process.env.CLOUD_NAME!;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME;
 
   try {
     const res = await fetch(
