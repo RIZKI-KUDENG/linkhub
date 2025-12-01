@@ -5,6 +5,7 @@ import { UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form"
 import { cn } from "@/lib/utils";
 import { themes } from "@/lib/theme";
 import { toast } from "sonner";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type ThemeSelectorProps = {
   register: UseFormRegister<any>;
@@ -17,19 +18,28 @@ export default function ThemeSelector({ register, setValue, watch }: ThemeSelect
   const customBgImage = watch("customBgImage");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     if (file.size > 2 * 1024 * 1024) {
       toast.warning("File terlalu besar (Max 2MB)");
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setValue("customBgImage", reader.result as string);
-      toast.success("Background berhasil diubah");
-    };
-    reader.readAsDataURL(file);
+
+    try {
+      toast.loading("Mengupload gambar...");
+      const imageUrl = await uploadToCloudinary(file);
+
+      setValue("customBgImage", imageUrl);
+
+      toast.success("Background berhasil diupload!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal upload ke Cloudinary");
+    } finally {
+      toast.dismiss();
+    }
   };
 
   return (

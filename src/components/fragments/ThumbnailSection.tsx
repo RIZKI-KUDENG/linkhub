@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Wand2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 interface ThumbnailSectionProps {
   imageUrl: string | undefined;
@@ -23,19 +24,26 @@ export default function ThumbnailSection({
   const [activeTab, setActiveTab] = useState<"scrape" | "custom">("scrape");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     if (file.size > 500 * 1024) {
       toast.warning("File terlalu besar (Max 500KB)");
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onImageChange(reader.result as string);
-      toast.success("Thumbnail berhasil diubah");
-    };
-    reader.readAsDataURL(file);
+
+    try {
+      toast.loading("Mengupload gambar...");
+      const cloudUrl = await uploadToCloudinary(file);
+      onImageChange(cloudUrl);
+      toast.success("Thumbnail berhasil diupload!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal upload gambar");
+    } finally {
+      toast.dismiss();
+    }
   };
 
   return (

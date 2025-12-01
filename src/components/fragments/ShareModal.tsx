@@ -20,7 +20,6 @@ export default function ShareModal({ username, open, onOpenChange }: ShareModalP
 
   useEffect(() => {
     setMounted(true);
-    // Mengambil base URL saat ini (localhost atau domain production)
     setOrigin(window.location.origin);
   }, []);
 
