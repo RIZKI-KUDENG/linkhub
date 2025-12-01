@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import LoadingSkeleton from "./loading"; 
+import LoadingSkeleton from "./loading";
 import {
   BarChart,
   Bar,
@@ -54,7 +54,7 @@ export default function AnalyticsPage(props: {
       } catch (err) {
         console.error(err);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     }
     fetchData();
@@ -65,7 +65,9 @@ export default function AnalyticsPage(props: {
   }
 
   if (!data)
-    return <div className="p-8 text-center text-white">Data tidak ditemukan.</div>;
+    return (
+      <div className="p-8 text-center text-white">Data tidak ditemukan.</div>
+    );
 
   const chartData = Object.entries(data.chartData || {}).map(
     ([date, clicks]) => ({
