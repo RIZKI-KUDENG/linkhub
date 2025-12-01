@@ -1,0 +1,16 @@
+name: Sync Analytics Cron
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Jalan setiap jam (menit ke-0)
+  workflow_dispatch: # Supaya bisa di-klik manual "Run Workflow" buat tes
+
+jobs:
+  ping-endpoint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call API Endpoint
+        run: |
+          curl -X GET ${{ secrets.NEXTAUTH_URL }}/api/cron/sync-analytics \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+          --fail
