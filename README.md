@@ -1,51 +1,66 @@
-# LinkHub
+# 🔗 Inspage
 
-LinkHub adalah platform manajemen tautan (link-in-bio) modern dan estetis yang memungkinkan pengguna membuat profil personal untuk menampilkan berbagai tautan, media sosial, dan konten embed dalam satu halaman.
+**Inspage** adalah platform *link-in-bio* open-source yang modern, estetis, dan kaya fitur. Aplikasi ini memungkinkan pengguna membuat halaman profil personal untuk menggabungkan semua tautan media sosial, portofolio, dan konten embed dalam satu tempat yang mudah dibagikan.
 
-Dibangun dengan performa dan pengalaman pengguna sebagai prioritas, LinkHub menggunakan teknologi web terbaru seperti Next.js 15+, Prisma, dan Tailwind CSS.
+Dibangun dengan performa tinggi menggunakan **Next.js 16 (App Router)**, **Prisma**, dan **Tailwind CSS v4**.
+
+![Inspage Preview](/public/logo.jpg)
 
 ## ✨ Fitur Utama
 
-* **🔐 Autentikasi Aman:** Login mudah menggunakan akun Google (NextAuth.js).
-* **🎨 Kustomisasi Profil:** Ubah username, bio, foto profil, dan pilih tema warna (Default, Midnight Black, Ocean Blue, Sunset Gradient).
-* **🔗 Manajemen Tautan:**
-    * Tambah, edit, dan hapus tautan tanpa batas.
-    * **Auto Metadata Scraping:** Mengambil judul, deskripsi, dan gambar thumbnail otomatis dari URL.
-    * **Drag & Drop:** Atur ulang urutan tautan dengan mudah menggunakan antarmuka drag-and-drop.
-    * **Tipe Tautan:** Mendukung tautan Klasik, Ikon Sosial, dan Embed (YouTube/Spotify).
-* **Ck Analitik Mendalam:**
-    * Pantau jumlah klik total dan harian.
-    * Informasi perangkat (Device), peramban (Browser), dan sistem operasi (OS).
-    * Lokasi geografis pengunjung (Negara & Kota).
-    * Sumber lalu lintas (Referrer).
-* **🖼️ Dynamic OG Image:** Pembuatan gambar Open Graph otomatis untuk setiap profil pengguna agar terlihat menarik saat dibagikan di media sosial.
-* **⚡ Rate Limiting:** Perlindungan API menggunakan Upstash Redis untuk mencegah penyalahgunaan.
-* **📱 Responsif:** Tampilan yang optimal di perangkat desktop maupun seluler.
+### 👤 Profil & Personalisasi
+* **Custom Themes:** Pilih dari tema bawaan (Default, Dark, Ocean, Sunset) atau buat tema kustom sendiri (Warna background, font, accent color, background image).
+* **SEO Friendly:** Pengaturan kustom untuk Meta Title dan Description profil.
+* **QR Code:** Generate QR Code otomatis untuk kemudahan berbagi profil.
+
+### 🔗 Manajemen Tautan Canggih
+* **Tipe Tautan Beragam:**
+    * **Classic:** Tautan standar dengan judul, deskripsi, dan thumbnail.
+    * **Social:** Ikon media sosial di footer profil.
+    * **Embed:** Putar video YouTube atau Spotify langsung di halaman (tanpa redirect).
+    * **Support:** Tombol khusus untuk dukungan/donasi.
+* **Auto Metadata:** Mengambil judul dan gambar thumbnail secara otomatis dari URL tujuan (Scraping).
+* **Drag & Drop:** Atur ulang urutan tautan dengan mudah.
+* **Keamanan & Privasi:**
+    * 🔒 **Password Protection:** Kunci tautan tertentu dengan kata sandi.
+    * 🔞 **Sensitive Content:** Blur tautan sensitif dengan peringatan konfirmasi sebelum dibuka.
+
+### 📊 Analitik Mendalam
+* **Statistik Real-time:** Pantau jumlah klik total dan harian.
+* **Detail Pengunjung:**
+    * **Perangkat:** Desktop vs Mobile.
+    * **Lokasi:** Negara dan Kota pengunjung.
+    * **Referrer:** Dari mana pengunjung berasal (Instagram, Twitter, Direct, dll).
+* **Performa Tinggi:** Menggunakan Redis (Upstash) untuk *caching* dan *rate limiting*.
+
+### 🛡️ Keamanan & Teknis
+* **Rate Limiting:** Mencegah penyalahgunaan API.
+* **Secure Auth:** Login menggunakan Google (NextAuth.js).
+* **Dynamic OG Image:** Pembuatan gambar Open Graph otomatis untuk setiap profil pengguna.
 
 ## 🛠️ Teknologi yang Digunakan
 
-* **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
-* **Bahasa:** [TypeScript](https://www.typescriptlang.org/)
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router & Server Actions)
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
 * **Database:** [PostgreSQL](https://www.postgresql.org/)
 * **ORM:** [Prisma](https://www.prisma.io/)
-* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-* **UI Components:** [Shadcn UI](https://ui.shadcn.com/) (Radix UI) & Lucide Icons
-* **Autentikasi:** [NextAuth.js](https://next-auth.js.org/)
-* **State Management & Drag-n-Drop:** `@dnd-kit`
+* **Auth:** [NextAuth.js v4](https://next-auth.js.org/)
+* **UI Libraries:** [Shadcn UI](https://ui.shadcn.com/), Lucide React, Framer Motion
+* **Drag & Drop:** `@dnd-kit`
 * **Charting:** [Recharts](https://recharts.org/)
-* **Caching & Rate Limiting:** [Upstash Redis](https://upstash.com/)
-* **Metadata Fetching:** `open-graph-scraper`
-* **OG Image Generation:** `satori` & `resvg`
+* **Cache & Rate Limit:** [Upstash Redis](https://upstash.com/)
+* **Image Storage:** [Cloudinary](https://cloudinary.com/)
 
 ## 📋 Prasyarat
 
-Sebelum memulai, pastikan Anda telah menginstal:
+Sebelum memulai, pastikan Anda telah menyiapkan:
 
-* [Node.js](https://nodejs.org/) (Versi 18 atau lebih baru)
-* [npm](https://www.npmjs.com/) atau [yarn](https://yarnpkg.com/)
-* Database PostgreSQL (Lokal atau Cloud seperti Supabase/Neon)
-* Akun Google Cloud Console (untuk OAuth)
-* Akun Upstash (untuk Redis Rate Limiting)
+1.  **Node.js** (Versi 18.17 atau lebih baru).
+2.  **PostgreSQL Database** (Lokal atau Cloud seperti Neon/Supabase).
+3.  **Akun Google Cloud Platform** (Untuk OAuth Client ID & Secret).
+4.  **Akun Upstash** (Untuk Redis database).
+5.  **Akun Cloudinary** (Untuk upload gambar).
 
 ## 🚀 Panduan Instalasi
 
@@ -97,8 +112,23 @@ Sebelum memulai, pastikan Anda telah menginstal:
 ## 📂 Struktur Proyek
 
 Berikut adalah gambaran umum struktur folder proyek:
+linkhub/
+├── prisma/               # Schema database & migrasi
+├── public/               # Aset statis (logo, icon)
+├── src/
+│   ├── app/              # Next.js App Router (Pages & API)
+│   │   ├── (auth)/       # Halaman Login
+│   │   ├── api/          # Endpoints (Auth, Link, Analytics, OG, Cron)
+│   │   ├── dashboard/    # Halaman Admin Pengguna
+│   │   └── u/[username]/ # Halaman Profil Publik
+│   ├── components/       # Komponen UI (Atomic & Fragments)
+│   ├── hooks/            # Custom React Hooks
+│   ├── lib/              # Utilitas (Prisma, Auth, Redis, Theme, Cloudinary)
+│   └── types/            # Definisi Tipe TypeScript
+├── .env                  # Environment Variables
+├── next.config.ts        # Konfigurasi Next.js
+└── tailwind.config.ts    # Konfigurasi Tailwind (v4 via CSS)
 
-linkhub/ ├── prisma/ # Schema database & migrasi │ └── schema.prisma ├── public/ # Aset statis (gambar, icon) ├── src/ │ ├── app/ # Next.js App Router │ │ ├── (auth)/ # Halaman login │ │ ├── api/ # API Routes (Analytics, Auth, Link, OG, Scrape) │ │ ├── dashboard/ # Halaman admin pengguna (Links, Settings, Analytics) │ │ └── u/[username]/ # Halaman profil publik pengguna │ ├── components/ # Komponen UI (Buttons, Inputs, Cards, Sidebar) │ ├── hooks/ # Custom React Hooks (useLinks) │ ├── lib/ # Utilitas (Auth config, Prisma client, Theme config) │ └── types/ # Definisi tipe TypeScript ├── .env # Environment variables (Git ignored) ├── middleware.ts # Middleware Next.js └── package.json
 
 ## 💡 Contoh Penggunaan
 
@@ -138,4 +168,6 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE).
 
 ---
 
-Dibuat dengan ❤️ menggunakan Next.js dan Prisma.
+Dibuat dengan ❤️ oleh Kudeng.
+
+
