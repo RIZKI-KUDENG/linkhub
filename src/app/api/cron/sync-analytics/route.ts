@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+
+export const dynamic = 'force-dynamic';
 type LogItem = {
   linkId: string;
   device: string;
