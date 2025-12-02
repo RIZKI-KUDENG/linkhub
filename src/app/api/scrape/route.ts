@@ -1,20 +1,41 @@
-//
-//Kode ini menerima sebuah URL, 
-// mengambil metadata (seperti judul, deskripsi, dan gambar) dari URL tersebut,
-//  dan mengirimkannya kembali ke klien.
-//
 
 import { NextResponse } from "next/server";
 import ogs from "open-graph-scraper";
 
 export async function POST(req: Request) {
-  const { url } = await req.json();
+  try {
+    const { url } = await req.json();
+    const { result } = await ogs({
+      url,
+      fetchOptions: {
+        headers: {
+          "User-Agent":
+            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+      },
+      timeout: 10000, 
+    });
 
-  const { result } = await ogs({ url });
+    let finalImage = result.ogImage?.[0]?.url;
+    
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+       const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+       if (ytMatch && (!finalImage || result.ogTitle === "- YouTube")) {
+          finalImage = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`;
+       }
+    }
 
-  return NextResponse.json({
-    title: result.ogTitle,
-    description: result.ogDescription,
-    image: result.ogImage?.[0].url,
-  });
+    return NextResponse.json({
+      title: result.ogTitle, 
+      description: result.ogDescription,
+      image: finalImage,
+    });
+  } catch (error) {
+    console.error("Scrape Error:", error);
+    return NextResponse.json(
+      { error: "Gagal mengambil metadata" }, 
+      { status: 500 }
+    );
+  }
 }
