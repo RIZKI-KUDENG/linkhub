@@ -199,10 +199,9 @@ export default function PublicLinkItem({
     );
   }
 
-  // B. Render Normal (Sesuai Tipe)
-
   // 1. Embed
   if (link.type === "EMBED") {
+    // Cek Password (Tetap sama)
     if (link.password) {
       return (
         <div
@@ -215,7 +214,6 @@ export default function PublicLinkItem({
         >
           <Lock size={24} className="mb-2 opacity-70" />
           <p className="font-medium text-sm">Konten Terkunci</p>
-          {/* Modal Password */}
           <PasswordDialog
             open={showPasswordModal}
             onOpenChange={setShowPasswordModal}
@@ -228,48 +226,95 @@ export default function PublicLinkItem({
         </div>
       );
     }
+    const isSpotify = link.url.includes("spotify");
+
+    if (isSpotify) {
+      return (
+        <a
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "mb-4 block rounded-xl overflow-hidden shadow-md hover:scale-[1.01] transition-all",
+            !isCustom && theme.card
+          )}
+          style={isCustom ? cardStyle : {}}
+        >
+          {link.imageUrl && (
+            <img
+              src={link.imageUrl}
+              className="w-full object-cover"
+              alt={link.title || "Spotify thumbnail"}
+            />
+          )}
+
+          <div className="p-4">
+            {link.title && (
+              <h3 className={cn("font-bold text-sm mb-1", textClass)}>
+                {link.title}
+              </h3>
+            )}
+            {link.description && (
+              <p className={cn("text-xs opacity-80 line-clamp-2", textClass)}>
+                {link.description}
+              </p>
+            )}
+          </div>
+        </a>
+      );
+    }
 
     const embedUrl = getEmbedUrl(link.url);
 
+    // Logic Tinggi Iframe
     let embedHeight = "152px";
     if (link.url.includes("youtube")) embedHeight = "auto";
     if (link.url.includes("music.apple.com")) embedHeight = "175px";
-    if (link.url.includes("spotify") && link.url.includes("episode")) embedHeight = "232px";
-    if (link.url.includes("tiktok")) embedHeight = "550px";
+    if (link.url.includes("spotify") && link.url.includes("episode"))
+      embedHeight = "175px";
+    if (link.url.includes("tiktok")) embedHeight = "250px"; // Sesuaikan jika masih kurang tinggi
     return (
-      <div 
-        className={cn("mb-4 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01]", !isCustom && theme.card)}
+      <div
+        className={cn(
+          "mb-4 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01]",
+          !isCustom && theme.card
+        )}
         style={isCustom ? cardStyle : {}}
       >
-        {/* Container Video/Embed */}
+        {/* Container Video/Embed (Player) */}
         <div className="w-full bg-black relative">
-            <iframe
+          <iframe
             src={embedUrl!}
             className="w-full"
-            style={{ 
-                aspectRatio: link.url.includes('youtube') ? '16/9' : undefined, 
-                height: link.url.includes('youtube') ? undefined : embedHeight 
+            style={{
+              aspectRatio: link.url.includes("youtube") ? "16/9" : undefined,
+              height: link.url.includes("youtube") ? undefined : embedHeight,
             }}
             allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
             loading="lazy"
             title={link.title || "Embedded Content"}
-            />
+          />
         </div>
 
-        {/* Bagian Judul & Deskripsi (Render jika ada) */}
+        {/* Bagian Judul & Deskripsi -> KLIK untuk Redirect */}
         {(link.title || link.description) && (
-            <div className="p-4">
-                {link.title && (
-                    <h3 className={cn("font-bold text-sm mb-1", textClass)}>
-                        {link.title}
-                    </h3>
-                )}
-                {link.description && (
-                    <p className={cn("text-xs opacity-80 line-clamp-2", textClass)}>
-                        {link.description}
-                    </p>
-                )}
-            </div>
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block p-4 hover:bg-black/5 transition-colors cursor-pointer"
+          >
+            {link.title && (
+              <h3 className={cn("font-bold text-sm mb-1", textClass)}>
+                {link.title}
+              </h3>
+            )}
+            {link.description && (
+              <p className={cn("text-xs opacity-80 line-clamp-2", textClass)}>
+                {link.description}
+              </p>
+            )}
+          </a>
         )}
       </div>
     );

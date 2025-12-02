@@ -7,6 +7,7 @@ import EditorSidebar from "@/components/fragments/EditorSidebar";
 import ShareModal from "@/components/fragments/ShareModal";
 import { QrCode } from "lucide-react";
 import { toast } from "sonner";
+import LoadingLinks from "./loading";
 
 import useLinks from "@/hooks/useLinks";
 import { redirect } from "next/navigation";
@@ -40,6 +41,10 @@ export default function DashboardPage() {
       setLinks(sorted);
     }
   }, [loading]);
+
+  if(loading){
+    return <LoadingLinks />
+  }
 
 
 
