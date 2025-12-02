@@ -46,6 +46,9 @@ export default function DashboardPage() {
     return <LoadingLinks />
   }
 
+  if (!session) {
+    redirect("/login");
+  }
 
 
 
