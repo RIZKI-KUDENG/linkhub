@@ -237,18 +237,40 @@ export default function PublicLinkItem({
     if (link.url.includes("spotify") && link.url.includes("episode")) embedHeight = "232px";
     if (link.url.includes("tiktok")) embedHeight = "550px";
     return (
-      <div className="mb-4 overflow-hidden rounded-xl shadow-md bg-black relative">
-        <iframe
-          src={embedUrl!}
-          className="w-full"
-          style={{
-            aspectRatio: link.url.includes("youtube") ? "16/9" : undefined,
-            height: link.url.includes("youtube") ? undefined : embedHeight, 
-          }}
-          allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
-          loading="lazy"
-          title="Embedded Content"
-        />
+      <div 
+        className={cn("mb-4 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.01]", !isCustom && theme.card)}
+        style={isCustom ? cardStyle : {}}
+      >
+        {/* Container Video/Embed */}
+        <div className="w-full bg-black relative">
+            <iframe
+            src={embedUrl!}
+            className="w-full"
+            style={{ 
+                aspectRatio: link.url.includes('youtube') ? '16/9' : undefined, 
+                height: link.url.includes('youtube') ? undefined : embedHeight 
+            }}
+            allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+            loading="lazy"
+            title={link.title || "Embedded Content"}
+            />
+        </div>
+
+        {/* Bagian Judul & Deskripsi (Render jika ada) */}
+        {(link.title || link.description) && (
+            <div className="p-4">
+                {link.title && (
+                    <h3 className={cn("font-bold text-sm mb-1", textClass)}>
+                        {link.title}
+                    </h3>
+                )}
+                {link.description && (
+                    <p className={cn("text-xs opacity-80 line-clamp-2", textClass)}>
+                        {link.description}
+                    </p>
+                )}
+            </div>
+        )}
       </div>
     );
   }
