@@ -2,7 +2,7 @@ name: Sync Analytics Cron
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,18 +11,19 @@ jobs:
     steps:
       - name: Call API Endpoint
         run: |
-          # Simpan respon server ke variabel
-          response=$(curl -s -w "\n%{http_code}" -X GET ${{ secrets.NEXTAUTH_URL }}/api/cron/sync-analytics \
+
+          response=$(curl -L -s -w "\n%{http_code}" -X GET ${{ secrets.NEXTAUTH_URL }}/api/cron/sync-analytics \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
-          
-          # Pisahkan body dan status code
+
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "🔍 RESPONSE DARI SERVER:"
           echo "$body"
           echo "---------------------"
-          
+          echo "Status Code: $http_code"
+
           if [ "$http_code" -ne 200 ]; then
             echo "❌ Error: API returned status $http_code"
             exit 1
