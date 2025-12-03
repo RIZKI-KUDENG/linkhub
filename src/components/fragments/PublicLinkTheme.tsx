@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -473,6 +474,7 @@ function PasswordDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xs">
+        <DialogClose className="absolute right-4 top-4 opacity-70 hover:opacity-100"/>
         <DialogHeader>
           <DialogTitle>Masukkan Password</DialogTitle>
         </DialogHeader>
