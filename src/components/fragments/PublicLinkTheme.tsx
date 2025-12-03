@@ -204,6 +204,7 @@ export default function PublicLinkItem({
     // Cek Password (Tetap sama)
     if (link.password) {
       return (
+        <>
         <div
           onClick={handleClick}
           className={cn(
@@ -214,6 +215,7 @@ export default function PublicLinkItem({
         >
           <Lock size={24} className="mb-2 opacity-70" />
           <p className="font-medium text-sm">Konten Terkunci</p>
+          </div>
           <PasswordDialog
             open={showPasswordModal}
             onOpenChange={setShowPasswordModal}
@@ -223,7 +225,7 @@ export default function PublicLinkItem({
             value={passwordInput}
             onChange={setPasswordInput}
           />
-        </div>
+        </>
       );
     }
     const isSpotify = link.url.includes("spotify");
